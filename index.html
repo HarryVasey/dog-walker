@@ -11,7 +11,7 @@
   <meta name="apple-mobile-web-app-title" content="PawTrack" />
   <meta name="theme-color" content="#fdf8f5" />
 
-  <!-- Dynamic Apple Touch Icon (Updated via Logo Uploader or logo.png in repo) -->
+  <!-- Dynamic Apple Touch Icon -->
   <link id="appleTouchIcon" rel="apple-touch-icon" href="logo.png" />
   <link id="favIcon" rel="icon" type="image/png" href="logo.png" />
 
@@ -48,15 +48,27 @@
     }
   </script>
   <style>
-    body { -webkit-tap-highlight-color: transparent; padding-bottom: 96px; background-color: #fdfaf7; color: #362d28; }
+    body { 
+      -webkit-tap-highlight-color: transparent; 
+      padding-bottom: 96px; 
+      background-color: #fdfaf7; 
+      color: #362d28; 
+    }
     .safe-top { padding-top: env(safe-area-inset-top, 16px); }
     .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 16px); }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
   </style>
 </head>
 <body class="font-sans min-h-screen">
 
   <!-- Top Header -->
-  <header class="bg-beige-100/95 backdrop-blur border-b border-beige-200 text-taupe-900 px-4 py-3 safe-top sticky top-0 z-20 flex justify-between items-center">
+  <header class="bg-beige-100/95 backdrop-blur border-b border-beige-200 text-taupe-900 px-4 py-3 safe-top sticky top-0 z-20 flex justify-between items-center shadow-xs">
     <div class="flex items-center gap-2.5">
       <img id="headerLogo" src="" alt="Logo" class="w-9 h-9 rounded-xl object-cover border border-beige-300 hidden" />
       <div id="headerFallbackIcon" class="w-9 h-9 rounded-xl bg-blush-200 flex items-center justify-center text-lg">🐾</div>
@@ -71,41 +83,75 @@
   <!-- Main Content Container -->
   <main class="max-w-md mx-auto p-4 space-y-4">
 
-    <!-- TAB 1: SCHEDULE (15-Min Calendar + Recurring) -->
+    <!-- TAB 1: SCHEDULE -->
     <section id="tab-schedule" class="space-y-3.5">
-      <div class="bg-white p-3 rounded-2xl shadow-sm border border-beige-200 flex items-center justify-between gap-2">
-        <button onclick="changeDay(-1)" class="px-3.5 py-1.5 bg-beige-100 rounded-xl font-bold text-taupe-800 active:bg-beige-200">◀</button>
-        <input type="date" id="scheduleDate" onchange="renderSchedule()" class="font-semibold text-center bg-transparent text-taupe-900 focus:outline-none" />
-        <button onclick="changeDay(1)" class="px-3.5 py-1.5 bg-beige-100 rounded-xl font-bold text-taupe-800 active:bg-beige-200">▶</button>
+      
+      <!-- Toggle Daily/Weekly View & Date Header -->
+      <div class="bg-white p-2.5 rounded-2xl shadow-xs border border-beige-200 space-y-2.5">
+        <div class="flex items-center justify-between gap-2">
+          <!-- View Toggle -->
+          <div class="flex bg-beige-100 rounded-lg p-0.5">
+            <button onclick="setScheduleView('day')" id="view-toggle-day" class="px-3 py-1 text-xs font-bold rounded-md transition-colors bg-white text-taupe-900 shadow-xs">
+              Daily
+            </button>
+            <button onclick="setScheduleView('week')" id="view-toggle-week" class="px-3 py-1 text-xs font-semibold rounded-md transition-colors text-taupe-600">
+              Weekly View
+            </button>
+          </div>
+          
+          <!-- Date Navigator -->
+          <div class="flex items-center gap-1.5">
+            <button onclick="navigateSchedule(-1)" class="w-7 h-7 flex items-center justify-center bg-beige-50 border border-beige-200 rounded-lg font-bold text-taupe-800 active:bg-beige-100">◀</button>
+            <input type="date" id="scheduleDate" onchange="renderSchedule()" class="font-semibold text-center bg-transparent text-taupe-900 focus:outline-none text-xs w-28" />
+            <button onclick="navigateSchedule(1)" class="w-7 h-7 flex items-center justify-center bg-beige-50 border border-beige-200 rounded-lg font-bold text-taupe-800 active:bg-beige-100">▶</button>
+          </div>
+        </div>
+
+        <!-- Weekly mini date ribbon -->
+        <div id="weekRibbon" class="grid grid-cols-7 gap-1 pt-1 border-t border-beige-100 hidden">
+          <!-- Populated by JS -->
+        </div>
       </div>
 
+      <!-- Quick Action Buttons -->
       <div class="grid grid-cols-3 gap-2">
-        <button onclick="openBookingModal()" class="col-span-2 bg-blush-500 text-white font-semibold py-3 px-3 rounded-2xl shadow-sm active:bg-blush-600 text-sm flex items-center justify-center gap-1.5">
-          <span>＋ Book Walk / Visit</span>
+        <button onclick="openBookingModal()" class="col-span-2 bg-blush-500 text-white font-bold py-3 px-3 rounded-2xl shadow-xs active:bg-blush-600 text-sm flex items-center justify-center gap-1.5">
+          <span>＋ Book Service</span>
         </button>
-        <button onclick="copyPreviousWeekSchedule()" class="bg-beige-100 border border-beige-300 text-taupe-800 font-semibold py-3 px-2 rounded-2xl text-xs active:bg-beige-200">
+        <button onclick="copyPreviousWeekSchedule()" class="bg-beige-100 border border-beige-300 text-taupe-800 font-semibold py-3 px-2 rounded-2xl text-xs active:bg-beige-200 text-center">
           🔄 Copy Last Wk
         </button>
       </div>
 
-      <!-- Day Bookings List -->
+      <!-- Bookings Lists -->
       <div id="dayBookingsList" class="space-y-2.5"></div>
     </section>
 
-    <!-- TAB 2: CLIENTS & DOGS -->
+
+    <!-- TAB 2: EXPANDABLE CLIENTS BY OWNER -->
     <section id="tab-clients" class="hidden space-y-4">
       <div class="bg-blush-50 border border-blush-200 rounded-2xl p-3 text-xs text-taupe-800">
-        💡 <strong>Multi-Dog Households:</strong> Dogs sharing the same <strong>Owner Name</strong> or <strong>Phone Number</strong> automatically qualify for your <strong>50% 2nd-dog discount</strong> when booked onto the same walk.
+        💡 <strong>Grouped by Owner:</strong> Expand any owner card to view individual dogs, contact details, notes, and vet information. Multi-dog bookings from the same owner automatically get the <strong>50% discount</strong>!
       </div>
-      <button onclick="openClientModal()" class="w-full bg-blush-500 text-white font-semibold py-3 rounded-2xl shadow-sm active:bg-blush-600 text-sm">
+      
+      <button onclick="openClientModal()" class="w-full bg-blush-500 text-white font-semibold py-3 rounded-2xl shadow-xs active:bg-blush-600 text-sm">
         ＋ Add New Dog & Client
       </button>
-      <div id="clientsList" class="space-y-3"></div>
+
+      <!-- Expand/Collapse All -->
+      <div class="flex justify-end gap-2 text-xs">
+        <button onclick="toggleAllClients(true)" class="text-blush-600 font-semibold">Expand All</button>
+        <span class="text-beige-300">|</span>
+        <button onclick="toggleAllClients(false)" class="text-taupe-600">Collapse All</button>
+      </div>
+
+      <div id="clientsGroupedList" class="space-y-3"></div>
     </section>
 
-    <!-- TAB 3: WEEKLY INVOICING & QUICKBOOKS -->
+
+    <!-- TAB 3: WEEKLY INVOICING -->
     <section id="tab-billing" class="hidden space-y-4">
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-beige-200 space-y-3">
+      <div class="bg-white p-4 rounded-2xl shadow-xs border border-beige-200 space-y-3">
         <h2 class="font-bold text-taupe-900 text-base">Weekly Invoice Summary</h2>
         <div class="flex items-center justify-between gap-2 text-sm">
           <label class="text-taupe-600 font-medium">Week Starting (Mon):</label>
@@ -131,13 +177,14 @@
       <div id="billingBreakdown" class="space-y-3"></div>
     </section>
 
+
     <!-- TAB 4: RATES, BRANDING & BACKUP -->
     <section id="tab-rates" class="hidden space-y-4">
-
+      
       <!-- App Icon / Logo Uploader -->
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-beige-200 space-y-3">
+      <div class="bg-white p-4 rounded-2xl shadow-xs border border-beige-200 space-y-3">
         <h2 class="font-bold text-taupe-900 text-base">Branding & iPhone App Icon</h2>
-        <p class="text-xs text-taupe-600">Upload your business logo below, then tap <strong>Share → Add to Home Screen</strong> in Safari so your logo becomes the app icon.</p>
+        <p class="text-xs text-taupe-600">Upload your business logo, then tap <strong>Share → Add to Home Screen</strong> in Safari so it becomes the app icon.</p>
         <div class="flex items-center gap-3">
           <img id="settingsLogoPreview" src="" class="w-14 h-14 rounded-2xl object-cover border border-beige-300 bg-beige-50 hidden" />
           <div class="flex-1 space-y-2">
@@ -151,7 +198,7 @@
       </div>
 
       <!-- Service Rates & Multi-Dog Discount -->
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-beige-200 space-y-3">
+      <div class="bg-white p-4 rounded-2xl shadow-xs border border-beige-200 space-y-3">
         <h2 class="font-bold text-taupe-900 text-base">Service Rates & Discounts</h2>
         <div class="space-y-2.5 text-sm">
           <div class="flex justify-between items-center">
@@ -189,7 +236,7 @@
       </div>
 
       <!-- Backup & Restore -->
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-beige-200 space-y-3">
+      <div class="bg-white p-4 rounded-2xl shadow-xs border border-beige-200 space-y-3">
         <h2 class="font-bold text-taupe-900 text-base">iPhone Data Backup</h2>
         <p class="text-xs text-taupe-600">Save a backup copy to your iPhone Files app so your clients and calendar are always safe.</p>
         <div class="flex gap-2">
@@ -208,18 +255,27 @@
 
   <!-- MODAL: ADD/EDIT CLIENT -->
   <div id="clientModal" class="fixed inset-0 bg-black/40 z-30 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="bg-beige-50 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-3 max-h-[90vh] overflow-y-auto border-t border-beige-200">
+    <div class="bg-beige-50 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-3 max-h-[90vh] overflow-y-auto border-t border-beige-200 shadow-xl">
       <h3 class="font-bold text-lg text-taupe-900">Dog & Client Details</h3>
       <input type="hidden" id="clientId" />
       <input id="dogName" placeholder="Dog Name (e.g. Barnaby) *" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
-      <input id="ownerName" placeholder="Owner Full Name (match exact name for 2nd dog) *" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
+      <input id="ownerName" placeholder="Owner Full Name *" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
       <div class="grid grid-cols-2 gap-2">
         <input id="ownerPhone" type="tel" placeholder="Phone Number *" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
         <input id="ownerEmail" type="email" placeholder="Email (QuickBooks)" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
       </div>
       <input id="ownerAddress" placeholder="Pickup Address *" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
       <input id="accessCode" placeholder="Keysafe / Alarm / Gate Code" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
-      <textarea id="petHealth" rows="3" placeholder="Pet Health, Vet Info, Allergies, Recall/Lead Notes..." class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm"></textarea>
+      
+      <!-- Vet Info Section -->
+      <div class="border-t border-beige-200 pt-2.5 space-y-2">
+        <label class="text-xs font-bold text-taupe-800">Veterinary Information</label>
+        <input id="vetClinic" placeholder="Vet Clinic Name / Hospital" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
+        <input id="vetPhone" type="tel" placeholder="Vet Phone Number" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
+      </div>
+
+      <textarea id="petHealth" rows="3" placeholder="Pet Health, Allergies, Recall/Lead Notes..." class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm"></textarea>
+      
       <div class="flex gap-2 pt-2">
         <button onclick="closeClientModal()" class="flex-1 py-2.5 bg-beige-200 text-taupe-800 rounded-xl font-semibold text-sm">Cancel</button>
         <button onclick="saveClient()" class="flex-1 py-2.5 bg-blush-500 text-white rounded-xl font-semibold text-sm">Save Client</button>
@@ -227,10 +283,11 @@
     </div>
   </div>
 
-  <!-- MODAL: BOOK WALK (15-Min Increments + Recurring Option) -->
+  <!-- MODAL: BOOK WALK -->
   <div id="bookingModal" class="fixed inset-0 bg-black/40 z-30 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="bg-beige-50 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-3 max-h-[92vh] overflow-y-auto border-t border-beige-200">
+    <div class="bg-beige-5 p-5 w-full max-w-md rounded-t-3xl sm:rounded-3xl space-y-3 max-h-[92vh] overflow-y-auto border-t border-beige-200 shadow-xl">
       <h3 class="font-bold text-lg text-taupe-900">Schedule Walk or Pop-In</h3>
+      
       <div class="grid grid-cols-2 gap-2">
         <div>
           <label class="text-xs font-semibold text-taupe-600">Start Time (15m slots)</label>
@@ -249,7 +306,7 @@
       </div>
 
       <div>
-        <label class="text-xs font-semibold text-taupe-600">Select Dog(s) (2nd dog from same owner = 50% off)</label>
+        <label class="text-xs font-semibold text-taupe-600">Select Dog(s)</label>
         <div id="bookingDogsChecklist" class="border border-beige-300 bg-white rounded-xl p-2.5 max-h-40 overflow-y-auto space-y-1.5 mt-1"></div>
       </div>
 
@@ -260,19 +317,19 @@
           <input type="checkbox" id="bookingIsRecurring" onchange="toggleRecurringOptions()" class="w-4 h-4 accent-blush-500" />
         </label>
         <div id="recurringOptionsBox" class="hidden space-y-2 pt-1 border-t border-beige-200">
-          <p class="text-[11px] text-taupe-600">Select which days of the week to book this slot:</p>
+          <p class="text-[11px] text-taupe-600">Select days of the week to repeat this walk:</p>
           <div class="grid grid-cols-7 gap-1 text-center text-xs font-semibold">
-            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="1" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>Mon</span></label>
-            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="2" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>Tue</span></label>
-            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="3" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>Wed</span></label>
-            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="4" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>Thu</span></label>
-            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="5" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>Fri</span></label>
-            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="6" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>Sat</span></label>
-            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="0" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>Sun</span></label>
+            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="1" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>M</span></label>
+            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="2" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>T</span></label>
+            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="3" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>W</span></label>
+            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="4" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>T</span></label>
+            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="5" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>F</span></label>
+            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="6" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>S</span></label>
+            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="0" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>S</span></label>
           </div>
           <div class="flex items-center justify-between text-xs pt-1">
             <span class="text-taupe-600 font-medium">Repeat for how many weeks?</span>
-            <select id="bookingRecurringWeeks" class="border border-beige-300 bg-beige-50 rounded-lg px-2 py-1 font-semibold">
+            <select id="bookingRecurringWeeks" class="border border-beige-300 bg-beige-50 rounded-lg px-2 py-1 font-semibold text-taupe-900">
               <option value="4">4 Weeks</option>
               <option value="8" selected>8 Weeks</option>
               <option value="12">12 Weeks</option>
@@ -291,8 +348,40 @@
     </div>
   </div>
 
+  <!-- DETAILS MODAL -->
+  <div id="detailsModal" class="fixed inset-0 bg-black/40 z-30 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-beige-50 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 max-h-[90vh] overflow-y-auto border-t border-beige-200 shadow-xl animate-fade-in">
+      <div class="flex justify-between items-start">
+        <div>
+          <h3 id="detTime" class="font-extrabold text-xl text-taupe-900"></h3>
+          <span id="detServiceBadge" class="inline-block text-xs font-bold px-2.5 py-0.5 rounded-full mt-1.5"></span>
+        </div>
+        <button onclick="closeDetailsModal()" class="text-taupe-600 hover:text-taupe-900 text-lg font-bold">✕</button>
+      </div>
+
+      <!-- Dogs Information -->
+      <div id="detDogsSection" class="space-y-3"></div>
+
+      <!-- General Booking Notes -->
+      <div id="detNotesBox" class="bg-white border border-beige-200 rounded-2xl p-3 shadow-2xs hidden">
+        <span class="text-xs font-bold text-taupe-600 block mb-1">📝 Walk/Visit Notes</span>
+        <p id="detNotes" class="text-xs text-taupe-800 italic"></p>
+      </div>
+
+      <!-- Delete Options -->
+      <div class="pt-2.5 border-t border-beige-200 flex flex-col gap-2">
+        <button id="detDeleteBtn" class="w-full py-3 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold rounded-xl text-xs transition-colors">
+          ✕ Cancel / Delete This Booking
+        </button>
+        <button id="detDeleteSeriesBtn" class="w-full py-3 bg-rose-200 hover:bg-rose-300 text-rose-900 font-bold rounded-xl text-xs transition-colors hidden">
+          ✕ Cancel / Delete All Future in Series
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Bottom Navigation Bar -->
-  <nav class="fixed bottom-0 inset-x-0 bg-beige-100/95 backdrop-blur border-t border-beige-200 flex justify-around py-2 safe-bottom z-20 max-w-md mx-auto">
+  <nav class="fixed bottom-0 inset-x-0 bg-beige-100/95 backdrop-blur border-t border-beige-200 flex justify-around py-2 safe-bottom z-20 max-w-md mx-auto shadow-lg">
     <button onclick="switchTab('schedule')" id="nav-schedule" class="flex flex-col items-center text-blush-600 font-bold text-xs">
       <span class="text-lg">📅</span><span>Schedule</span>
     </button>
@@ -311,20 +400,29 @@
     // --- SERVICE METADATA ---
     const SERVICE_META = {
       solo30:  { label: 'Solo Walk (30m)',  duration: 30, badge: 'bg-blush-100 text-blush-700 border border-blush-200' },
-      solo60:  { label: 'Solo Walk (60m)',  duration: 60, badge: 'bg-blush-200 text-blush-700 border border-blush-400' },
+      solo60:  { label: 'Solo Walk (60m)',  duration: 60, badge: 'bg-blush-200 text-blush-800 border border-blush-300' },
       group60: { label: 'Group Walk (60m)', duration: 60, badge: 'bg-beige-200 text-taupe-900 border border-beige-300' },
-      pop30:   { label: 'Pop-In (30m)',     duration: 30, badge: 'bg-amber-50 text-amber-800 border border-amber-200' },
+      pop30:   { label: 'Pop-In (30m)',     duration: 30, badge: 'bg-amber-100 text-amber-800 border border-amber-200' },
       pop60:   { label: 'Pop-In (60m)',     duration: 60, badge: 'bg-orange-50 text-orange-800 border border-orange-200' }
     };
 
-    const defaultRates = { solo30: 14, solo60: 22, group60: 16, pop30: 12, pop60: 18, secondDogDiscount: 50 };
+    const defaultRates = { 
+      solo30: 14, 
+      solo60: 22, 
+      group60: 16, 
+      pop30: 12, 
+      pop60: 18, 
+      secondDogDiscount: 50 
+    };
 
     let state = {
       clients: JSON.parse(localStorage.getItem('pt_clients') || '[]'),
       bookings: JSON.parse(localStorage.getItem('pt_bookings') || '[]'),
       rates: Object.assign({}, defaultRates, JSON.parse(localStorage.getItem('pt_rates') || '{}')),
       brandName: localStorage.getItem('pt_brandName') || 'PawTrack',
-      logoDataUrl: localStorage.getItem('pt_logo') || ''
+      logoDataUrl: localStorage.getItem('pt_logo') || '',
+      scheduleView: 'day',
+      expandedOwners: JSON.parse(localStorage.getItem('pt_exp_owners') || '{}')
     };
 
     function persist() {
@@ -332,20 +430,20 @@
       localStorage.setItem('pt_bookings', JSON.stringify(state.bookings));
       localStorage.setItem('pt_rates', JSON.stringify(state.rates));
       localStorage.setItem('pt_brandName', state.brandName);
+      localStorage.setItem('pt_exp_owners', JSON.stringify(state.expandedOwners));
       if (state.logoDataUrl) localStorage.setItem('pt_logo', state.logoDataUrl);
     }
 
-    // Helper: Identify household key so dogs belonging to the same owner are grouped
     function getOwnerKey(client) {
       const nameKey = (client.ownerName || '').trim().toLowerCase();
       const phoneKey = (client.ownerPhone || '').replace(/\D/g, '');
       return nameKey || phoneKey || client.id;
     }
 
-    // Helper: Calculate per-dog price inside a single booking (1st dog = 100%, 2nd+ dog of same owner = discounted)
     function calculateBookingDogPrices(booking) {
       const baseRate = state.rates[booking.serviceType] || 0;
       const discountPct = (state.rates.secondDogDiscount ?? 50) / 100;
+
       const ownerSeenCount = {};
       const results = [];
 
@@ -354,6 +452,7 @@
         if (!client) return;
         const ownerKey = getOwnerKey(client);
         ownerSeenCount[ownerKey] = (ownerSeenCount[ownerKey] || 0) + 1;
+        
         const isSecondDog = ownerSeenCount[ownerKey] > 1;
         const finalPrice = isSecondDog ? baseRate * (1 - discountPct) : baseRate;
         results.push({
@@ -422,15 +521,16 @@
           const ctx = canvas.getContext('2d');
           ctx.fillStyle = '#fdfaf7';
           ctx.fillRect(0, 0, 180, 180);
-          // Center crop square
+          
           const minSide = Math.min(img.width, img.height);
           const sx = (img.width - minSide) / 2;
           const sy = (img.height - minSide) / 2;
+
           ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, 180, 180);
           state.logoDataUrl = canvas.toDataURL('image/png');
           persist();
           applyBranding();
-          alert('Logo updated! Now tap Share -> Add to Home Screen in Safari to use it as your app icon.');
+          alert('Logo updated! Save to Home Screen in Safari to see it as your app icon.');
         };
         img.src = e.target.result;
       };
@@ -440,8 +540,9 @@
     function populate15MinSlots() {
       const sel = document.getElementById('bookingStartTime');
       sel.innerHTML = '';
-      for (let h = 6; h <= 20; h++) {
+      for (let h = 6; h <= 21; h++) {
         for (let m of [0, 15, 30, 45]) {
+          if (h === 21 && m > 0) continue;
           const hh = String(h).padStart(2, '0');
           const mm = String(m).padStart(2, '0');
           const opt = document.createElement('option');
@@ -471,14 +572,78 @@
           : 'flex flex-col items-center text-taupe-600 font-medium text-xs';
       });
       if (tab === 'billing') renderBilling();
+      if (tab === 'schedule') renderSchedule();
+      if (tab === 'clients') renderClients();
     }
 
-    // --- SCHEDULE & RECURRING SLOTS ---
-    function changeDay(offset) {
+    // --- EXPANDABLE CLIENT CARDS ---
+    function toggleOwnerCard(ownerKey) {
+      state.expandedOwners[ownerKey] = !state.expandedOwners[ownerKey];
+      persist();
+      renderClients();
+    }
+
+    function toggleAllClients(expand) {
+      const owners = getGroupedClients();
+      Object.keys(owners).forEach(k => {
+        state.expandedOwners[k] = expand;
+      });
+      persist();
+      renderClients();
+    }
+
+    function getGroupedClients() {
+      const grouped = {};
+      state.clients.forEach(c => {
+        const key = getOwnerKey(c);
+        if (!grouped[key]) {
+          grouped[key] = {
+            ownerName: c.ownerName,
+            ownerPhone: c.ownerPhone,
+            ownerEmail: c.ownerEmail,
+            ownerAddress: c.ownerAddress,
+            accessCode: c.accessCode,
+            vetClinic: c.vetClinic || '',
+            vetPhone: c.vetPhone || '',
+            dogs: []
+          };
+        }
+        grouped[key].dogs.push(c);
+      });
+      return grouped;
+    }
+
+    // --- SCHEDULE VIEWS (Day / Week) ---
+    function setScheduleView(view) {
+      state.scheduleView = view;
+      document.getElementById('view-toggle-day').className = view === 'day' 
+        ? "px-3 py-1 text-xs font-bold rounded-md transition-colors bg-white text-taupe-900 shadow-xs"
+        : "px-3 py-1 text-xs font-semibold rounded-md transition-colors text-taupe-600";
+      
+      document.getElementById('view-toggle-week').className = view === 'week' 
+        ? "px-3 py-1 text-xs font-bold rounded-md transition-colors bg-white text-taupe-900 shadow-xs"
+        : "px-3 py-1 text-xs font-semibold rounded-md transition-colors text-taupe-600";
+      
+      const weekRibbon = document.getElementById('weekRibbon');
+      weekRibbon.classList.toggle('hidden', view !== 'week');
+
+      renderSchedule();
+    }
+
+    function navigateSchedule(offset) {
       const input = document.getElementById('scheduleDate');
       const d = new Date(input.value);
-      d.setDate(d.getDate() + offset);
+      if (state.scheduleView === 'day') {
+        d.setDate(d.getDate() + offset);
+      } else {
+        d.setDate(d.getDate() + (offset * 7));
+      }
       input.value = d.toISOString().split('T')[0];
+      renderSchedule();
+    }
+
+    function selectRibbonDay(dateStr) {
+      document.getElementById('scheduleDate').value = dateStr;
       renderSchedule();
     }
 
@@ -509,14 +674,13 @@
         switchTab('clients');
         return;
       }
-      // Sort by owner so same-household dogs sit together
       const sortedClients = [...state.clients].sort((a, b) => a.ownerName.localeCompare(b.ownerName));
       const list = document.getElementById('bookingDogsChecklist');
       list.innerHTML = sortedClients.map(c => `
         <label class="flex items-center justify-between text-sm py-1 px-1.5 rounded hover:bg-beige-50">
           <div class="flex items-center gap-2">
             <input type="checkbox" value="${c.id}" class="booking-dog-cb w-4 h-4 accent-blush-500" />
-            <span class="font-semibold text-taupe-900">${c.dogName}</span>
+            <span class="font-semibold text-taupe-900">🐕 ${c.dogName}</span>
           </div>
           <span class="text-xs text-taupe-600">Owner: ${c.ownerName}</span>
         </label>
@@ -609,33 +773,12 @@
       });
       persist();
       renderSchedule();
-      alert('Last week copied to this week!');
+      alert('Last week copied forward successfully!');
     }
 
-    function deleteBooking(id, seriesId) {
-      if (seriesId && seriesId !== 'null') {
-        const choice = prompt('Type "1" to delete ONLY this walk, or "2" to delete ALL future walks in this recurring series:', '1');
-        if (choice === '2') {
-          const currentDate = document.getElementById('scheduleDate').value;
-          state.bookings = state.bookings.filter(b => !(b.seriesId === seriesId && b.date >= currentDate));
-        } else if (choice === '1') {
-          state.bookings = state.bookings.filter(b => b.id !== id);
-        } else {
-          return;
-        }
-      } else {
-        if (!confirm('Remove this booking?')) return;
-        state.bookings = state.bookings.filter(b => b.id !== id);
-      }
-      persist();
-      renderSchedule();
-    }
-
-    function renderSchedule() {
-      const date = document.getElementById('scheduleDate').value;
-      const container = document.getElementById('dayBookingsList');
+    function renderDayView(dateStr, container) {
       const dayItems = state.bookings
-        .filter(b => b.date === date)
+        .filter(b => b.date === dateStr)
         .sort((a, b) => a.startTime.localeCompare(b.startTime));
 
       if (dayItems.length === 0) {
@@ -643,42 +786,283 @@
         return;
       }
 
-      container.innerHTML = dayItems.map(b => {
+      let html = '<div class="space-y-3">';
+      dayItems.forEach((b, index) => {
         const meta = SERVICE_META[b.serviceType];
         const pricedDogs = calculateBookingDogPrices(b);
-        return `
-          <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-beige-200 space-y-2">
-            <div class="flex justify-between items-start">
-              <div class="flex flex-wrap items-center gap-1.5">
-                <span class="font-bold text-taupe-900 text-base">${b.startTime} – ${b.endTime}</span>
-                <span class="text-xs px-2.5 py-0.5 rounded-full font-semibold ${meta.badge}">${meta.label}</span>
-                ${b.seriesId ? `<span class="text-[11px] bg-beige-100 text-taupe-800 px-2 py-0.5 rounded-full font-semibold">🔁 Recurring</span>` : ''}
+        const dogNames = pricedDogs.map(pd => pd.client.dogName).join(', ');
+        const totalBookingCost = pricedDogs.reduce((sum, d) => sum + d.finalPrice, 0);
+
+        let gapHtml = '';
+        if (index > 0) {
+          const prev = dayItems[index - 1];
+          const gapMin = getMinutesBetween(prev.endTime, b.startTime);
+          if (gapMin > 0) {
+            gapHtml = `
+              <div class="flex items-center justify-center gap-1.5 py-1 text-[11px] text-taupe-600 bg-beige-100/50 rounded-xl border border-dashed border-beige-200">
+                <span>🚗 Travel / Gap: <strong>${gapMin} mins</strong></span>
               </div>
-              <button onclick="deleteBooking('${b.id}', '${b.seriesId || ''}')" class="text-xs text-blush-600 font-bold px-1.5">✕</button>
+            `;
+          }
+        }
+
+        html += gapHtml + `
+          <div onclick="openDetailsModal('${b.id}')" class="bg-white p-3.5 rounded-2xl shadow-xs border border-beige-200 hover:border-blush-300 active:scale-[0.99] transition-all cursor-pointer space-y-2">
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="font-extrabold text-taupe-900 text-base">${b.startTime} – ${b.endTime}</span>
+                <span class="ml-1.5 text-[11px] px-2.5 py-0.5 rounded-full font-bold ${meta.badge}">${meta.label}</span>
+              </div>
+              <span class="text-sm font-bold text-blush-700">£${totalBookingCost.toFixed(2)}</span>
+            </div>
+            <div class="flex items-center justify-between text-xs text-taupe-800">
+              <span class="font-bold">🐕 ${dogNames}</span>
+              <span class="text-taupe-600">Owner: ${pricedDogs[0]?.client.ownerName || ''}</span>
+            </div>
+            ${b.notes ? `<p class="text-xs text-taupe-600 italic line-clamp-1">📝 ${b.notes}</p>` : ''}
+          </div>
+        `;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    function renderWeekView(startOfWeekDate, container) {
+      let html = '<div class="space-y-3.5">';
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(startOfWeekDate);
+        d.setDate(startOfWeekDate.getDate() + i);
+        const dStr = d.toISOString().split('T')[0];
+        
+        const dayBookings = state.bookings
+          .filter(b => b.date === dStr)
+          .sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+        const dayNameLabel = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+        const isToday = dStr === new Date().toISOString().split('T')[0];
+
+        html += `
+          <div class="space-y-1.5">
+            <div class="flex justify-between items-center px-1">
+              <span class="text-xs font-extrabold ${isToday ? 'text-blush-700 font-black' : 'text-taupe-900'}">${dayNameLabel} ${isToday ? '⭐ (Today)' : ''}</span>
+              <span class="text-[10px] text-taupe-600">${dayBookings.length} Bookings</span>
             </div>
             <div class="space-y-1.5">
-              ${pricedDogs.map(({ client: d, isSecondDog, finalPrice, discountPct }) => `
-                <div class="text-sm flex flex-wrap items-center justify-between bg-beige-50 border border-beige-200 px-2.5 py-1.5 rounded-xl">
-                  <div>
-                    <span class="font-bold text-taupe-900">🐕 ${d.dogName}</span>
-                    <span class="text-xs text-taupe-600 ml-1">(${d.ownerName})</span>
-                    ${isSecondDog ? `<span class="text-[11px] bg-blush-100 text-blush-700 font-semibold px-1.5 py-0.5 rounded ml-1">-${discountPct}% 2nd Dog (£${finalPrice.toFixed(2)})</span>` : `<span class="text-xs text-taupe-600 ml-1">£${finalPrice.toFixed(2)}</span>`}
-                    ${d.accessCode ? `<span class="text-[11px] bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 rounded ml-1">🔑 ${d.accessCode}</span>` : ''}
-                  </div>
-                  <div class="flex gap-2.5 text-xs font-semibold">
-                    <a href="tel:${d.ownerPhone}" class="text-blush-600">Call</a>
-                    <a href="http://maps.apple.com/?q=${encodeURIComponent(d.ownerAddress)}" target="_blank" class="text-taupe-800 underline">Map</a>
+        `;
+
+        if (dayBookings.length === 0) {
+          html += `<div class="text-[11px] text-center py-2.5 text-taupe-600 bg-beige-100/40 rounded-xl border border-dashed border-beige-200">No scheduled walks</div>`;
+        } else {
+          dayBookings.forEach(b => {
+            const pricedDogs = calculateBookingDogPrices(b);
+            const dogNames = pricedDogs.map(pd => pd.client.dogName).join(', ');
+            const totalBookingCost = pricedDogs.reduce((sum, d) => sum + d.finalPrice, 0);
+
+            html += `
+              <div onclick="openDetailsModal('${b.id}')" class="bg-white px-3 py-2.5 rounded-xl border border-beige-200 hover:border-blush-300 transition-colors cursor-pointer flex items-center justify-between gap-2 shadow-2xs">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="text-xs font-bold text-taupe-900 whitespace-nowrap">${b.startTime}</span>
+                  <div class="h-4 w-[1px] bg-beige-300"></div>
+                  <div class="min-w-0">
+                    <p class="text-xs font-bold text-taupe-900 truncate">🐕 ${dogNames}</p>
+                    <p class="text-[10px] text-taupe-600 truncate">${SERVICE_META[b.serviceType].label}</p>
                   </div>
                 </div>
-              `).join('')}
+                <div class="flex items-center gap-1.5 shrink-0">
+                  <span class="text-xs font-bold text-blush-700">£${totalBookingCost.toFixed(2)}</span>
+                  <span class="text-[10px] text-taupe-600">▶</span>
+                </div>
+              </div>
+            `;
+          });
+        }
+
+        html += `
             </div>
-            ${b.notes ? `<p class="text-xs text-taupe-600 italic">📝 ${b.notes}</p>` : ''}
+          </div>
+        `;
+      }
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    function getMinutesBetween(time1, time2) {
+      const [h1, m1] = time1.split(':').map(Number);
+      const [h2, m2] = time2.split(':').map(Number);
+      return (h2 * 60 + m2) - (h1 * 60 + m1);
+    }
+
+    // --- DETAIL POPUP ENGINE ---
+    function openDetailsModal(bookingId) {
+      const b = state.bookings.find(x => x.id === bookingId);
+      if (!b) return;
+
+      const meta = SERVICE_META[b.serviceType];
+      const pricedDogs = calculateBookingDogPrices(b);
+
+      document.getElementById('detTime').textContent = `${b.startTime} – ${b.endTime}`;
+      document.getElementById('detServiceBadge').textContent = meta.label;
+      document.getElementById('detServiceBadge').className = `inline-block text-xs font-bold px-2.5 py-1 rounded-full mt-1.5 ${meta.badge}`;
+
+      if (b.notes) {
+        document.getElementById('detNotesBox').classList.remove('hidden');
+        document.getElementById('detNotes').textContent = b.notes;
+      } else {
+        document.getElementById('detNotesBox').classList.add('hidden');
+      }
+
+      const dogsContainer = document.getElementById('detDogsSection');
+      dogsContainer.innerHTML = pricedDogs.map(({ client: d, isSecondDog, finalPrice }) => {
+        return `
+          <div class="bg-white p-3 border border-beige-200 rounded-2xl shadow-2xs space-y-2">
+            <div class="flex justify-between items-center">
+              <div>
+                <h4 class="font-extrabold text-sm text-taupe-900">🐕 ${d.dogName}</h4>
+                <p class="text-[11px] text-taupe-600">Owner: <strong class="text-taupe-900">${d.ownerName}</strong></p>
+              </div>
+              <div class="text-right">
+                <span class="text-xs font-bold text-blush-700 block">£${finalPrice.toFixed(2)}</span>
+                ${isSecondDog ? `<span class="text-[9px] bg-blush-100 text-blush-700 px-1.5 py-0.2 rounded font-bold uppercase">50% off</span>` : ''}
+              </div>
+            </div>
+
+            <p class="text-xs text-taupe-600 flex items-start gap-1.5">
+              <span>📍</span> <span>${d.ownerAddress}</span>
+            </p>
+            ${d.accessCode ? `
+              <p class="text-xs text-amber-800 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg flex items-center gap-1.5">
+                <span>🔑 Access:</span> <strong>${d.accessCode}</strong>
+              </p>
+            ` : ''}
+
+            ${d.petHealth ? `
+              <div class="bg-blush-50 border border-blush-100 rounded-lg p-2 text-[11px] text-blush-800">
+                <strong>🩺 Health Notes:</strong> ${d.petHealth}
+              </div>
+            ` : ''}
+
+            ${(d.vetClinic || d.vetPhone) ? `
+              <div class="bg-beige-100/60 border border-beige-200 rounded-lg p-2 text-[11px] text-taupe-800 space-y-0.5">
+                <p>🏥 <strong>Vet Clinic:</strong> ${d.vetClinic || 'Not Specified'}</p>
+                ${d.vetPhone ? `<p>📞 <strong>Vet Phone:</strong> <a href="tel:${d.vetPhone}" class="text-blush-600 font-bold underline">${d.vetPhone}</a></p>` : ''}
+              </div>
+            ` : ''}
+
+            <div class="grid grid-cols-3 gap-1.5 pt-1 text-[11px] font-bold text-center">
+              <a href="tel:${d.ownerPhone}" class="bg-beige-100 rounded-lg py-1.5 text-taupe-800">📞 Call</a>
+              <a href="sms:${d.ownerPhone}" class="bg-beige-100 rounded-lg py-1.5 text-taupe-800">💬 Text</a>
+              <a href="http://maps.apple.com/?q=${encodeURIComponent(d.ownerAddress)}" target="_blank" class="bg-beige-100 rounded-lg py-1.5 text-taupe-800">🗺️ Map</a>
+            </div>
           </div>
         `;
       }).join('');
+
+      const delBtn = document.getElementById('detDeleteBtn');
+      const delSeriesBtn = document.getElementById('detDeleteSeriesBtn');
+
+      delBtn.onclick = () => {
+        if (confirm('Cancel / delete this walk booking?')) {
+          state.bookings = state.bookings.filter(x => x.id !== b.id);
+          persist();
+          closeDetailsModal();
+          renderSchedule();
+        }
+      };
+
+      if (b.seriesId) {
+        delSeriesBtn.classList.remove('hidden');
+        delSeriesBtn.onclick = () => {
+          if (confirm('Delete all future sessions in this recurring series?')) {
+            const currentDate = document.getElementById('scheduleDate').value;
+            state.bookings = state.bookings.filter(x => !(x.seriesId === b.seriesId && x.date >= currentDate));
+            persist();
+            closeDetailsModal();
+            renderSchedule();
+          }
+        };
+      } else {
+        delSeriesBtn.classList.add('hidden');
+      }
+
+      document.getElementById('detailsModal').classList.remove('hidden');
     }
 
-    // --- CLIENTS ---
+    function closeDetailsModal() {
+      document.getElementById('detailsModal').classList.add('hidden');
+    }
+
+    function renderClients() {
+      const container = document.getElementById('clientsGroupedList');
+      if (state.clients.length === 0) {
+        container.innerHTML = `<div class="text-center py-10 text-taupe-600 text-sm bg-white rounded-2xl border border-dashed border-beige-300">No dogs added yet. Tap above to add your first client!</div>`;
+        return;
+      }
+
+      const grouped = getGroupedClients();
+      let html = '';
+
+      Object.entries(grouped).forEach(([ownerKey, info]) => {
+        const isExpanded = state.expandedOwners[ownerKey] !== false;
+        const dogsNames = info.dogs.map(d => d.dogName).join(' & ');
+
+        html += `
+          <div class="bg-white border border-beige-200 rounded-2xl shadow-xs overflow-hidden">
+            <div onclick="toggleOwnerCard('${ownerKey}')" class="bg-beige-100/50 p-4 flex justify-between items-center cursor-pointer hover:bg-beige-100 transition-colors">
+              <div class="min-w-0">
+                <h3 class="font-extrabold text-base text-taupe-900 truncate">👤 ${info.ownerName}</h3>
+                <p class="text-xs text-taupe-600 truncate">Dogs: <span class="font-bold text-blush-700">${dogsNames}</span></p>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs bg-blush-100 text-blush-700 px-2.5 py-0.5 rounded-full font-bold">${info.dogs.length} ${info.dogs.length > 1 ? 'Dogs' : 'Dog'}</span>
+                <span class="text-taupe-600 text-xs font-bold transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}">▼</span>
+              </div>
+            </div>
+
+            <div class="${isExpanded ? 'block' : 'hidden'} p-4 border-t border-beige-100 space-y-3.5">
+              <div class="text-xs text-taupe-800 space-y-1.5">
+                <p>📍 <strong>Pickup Address:</strong> ${info.ownerAddress}</p>
+                <p>📧 <strong>Email:</strong> ${info.ownerEmail || 'Not Specified'}</p>
+                <p>📞 <strong>Phone:</strong> ${info.ownerPhone}</p>
+                ${info.accessCode ? `<p class="text-amber-800 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg inline-block mt-1">🔑 Access: <strong>${info.accessCode}</strong></p>` : ''}
+              </div>
+
+              <div class="grid grid-cols-4 gap-1.5 text-xs font-semibold text-center">
+                <a href="tel:${info.ownerPhone}" class="bg-beige-100 rounded-lg py-1.5 text-taupe-800">📞 Call</a>
+                <a href="sms:${info.ownerPhone}" class="bg-beige-100 rounded-lg py-1.5 text-taupe-800">💬 Text</a>
+                <a href="http://maps.apple.com/?q=${encodeURIComponent(info.ownerAddress)}" target="_blank" class="bg-beige-100 rounded-lg py-1.5 text-taupe-800">🗺️ Map</a>
+                <button onclick="addSecondDogForOwner('${info.dogs[0].id}')" class="bg-blush-100 text-blush-700 rounded-lg py-1.5">＋ Dog</button>
+              </div>
+
+              <div class="space-y-2 pt-2 border-t border-beige-100">
+                <h4 class="text-xs font-extrabold uppercase tracking-wide text-taupe-600">Dogs details:</h4>
+                ${info.dogs.map(dog => `
+                  <div class="bg-beige-50 border border-beige-200 rounded-xl p-3 space-y-1.5 relative">
+                    <div class="flex justify-between items-start">
+                      <span class="font-extrabold text-sm text-taupe-900">🐾 ${dog.dogName}</span>
+                      <button onclick="openClientModal('${dog.id}')" class="text-xs text-blush-700 font-bold hover:underline">Edit details</button>
+                    </div>
+
+                    ${dog.petHealth ? `
+                      <p class="text-[11px] text-blush-800 bg-blush-50/50 border border-blush-100 rounded p-1.5">🩺 <strong>Health:</strong> ${dog.petHealth}</p>
+                    ` : ''}
+
+                    ${(dog.vetClinic || dog.vetPhone) ? `
+                      <div class="text-[11px] text-taupe-800 space-y-0.5 pt-0.5 border-t border-dashed border-beige-200">
+                        <p>🏥 <strong>Vet Clinic:</strong> ${dog.vetClinic || 'Not Specified'}</p>
+                        ${dog.vetPhone ? `<p>📞 <strong>Vet Phone:</strong> <a href="tel:${dog.vetPhone}" class="underline text-blush-600">${dog.vetPhone}</a></p>` : ''}
+                      </div>
+                    ` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
     function openClientModal(id = null, prefillOwner = null) {
       const c = id ? state.clients.find(x => x.id === id) : null;
       document.getElementById('clientId').value = c ? c.id : '';
@@ -689,6 +1073,9 @@
       document.getElementById('ownerAddress').value = c ? c.ownerAddress : (prefillOwner ? prefillOwner.ownerAddress : '');
       document.getElementById('accessCode').value = c ? (c.accessCode || '') : (prefillOwner ? (prefillOwner.accessCode || '') : '');
       document.getElementById('petHealth').value = c ? (c.petHealth || '') : '';
+      document.getElementById('vetClinic').value = c ? (c.vetClinic || '') : (prefillOwner ? (prefillOwner.vetClinic || '') : '');
+      document.getElementById('vetPhone').value = c ? (c.vetPhone || '') : (prefillOwner ? (prefillOwner.vetPhone || '') : '');
+      
       document.getElementById('clientModal').classList.remove('hidden');
     }
 
@@ -710,66 +1097,28 @@
       const ownerAddress = document.getElementById('ownerAddress').value.trim();
       const accessCode = document.getElementById('accessCode').value.trim();
       const petHealth = document.getElementById('petHealth').value.trim();
+      const vetClinic = document.getElementById('vetClinic').value.trim();
+      const vetPhone = document.getElementById('vetPhone').value.trim();
 
-      if (!dogName || !ownerName) return alert('Dog Name and Owner Name are required.');
+      if (!dogName || !ownerName || !ownerPhone || !ownerAddress) {
+        return alert('Dog Name, Owner Name, Phone and Pickup Address are required.');
+      }
 
       if (id) {
         const idx = state.clients.findIndex(c => c.id === id);
-        if (idx > -1) state.clients[idx] = { id, dogName, ownerName, ownerPhone, ownerEmail, ownerAddress, accessCode, petHealth };
+        if (idx > -1) {
+          state.clients[idx] = { id, dogName, ownerName, ownerPhone, ownerEmail, ownerAddress, accessCode, petHealth, vetClinic, vetPhone };
+        }
       } else {
-        state.clients.push({ id: 'cl_' + Date.now(), dogName, ownerName, ownerPhone, ownerEmail, ownerAddress, accessCode, petHealth });
+        state.clients.push({ id: 'cl_' + Date.now(), dogName, ownerName, ownerPhone, ownerEmail, ownerAddress, accessCode, petHealth, vetClinic, vetPhone });
       }
+
       persist();
       closeClientModal();
       renderClients();
       renderSchedule();
     }
 
-    function renderClients() {
-      const container = document.getElementById('clientsList');
-      if (state.clients.length === 0) {
-        container.innerHTML = `<div class="text-center py-10 text-taupe-600 text-sm bg-white rounded-2xl border border-dashed border-beige-300">No dogs added yet. Tap above to add your first client!</div>`;
-        return;
-      }
-
-      // Count how many dogs each owner has
-      const ownerCounts = {};
-      state.clients.forEach(c => {
-        const k = getOwnerKey(c);
-        ownerCounts[k] = (ownerCounts[k] || 0) + 1;
-      });
-
-      container.innerHTML = state.clients.map(c => {
-        const multiDogCount = ownerCounts[getOwnerKey(c)] || 1;
-        return `
-          <div class="bg-white p-4 rounded-2xl shadow-sm border border-beige-200 space-y-2">
-            <div class="flex justify-between items-start">
-              <div>
-                <div class="flex items-center gap-2">
-                  <h3 class="font-bold text-base text-taupe-900">🐶 ${c.dogName}</h3>
-                  ${multiDogCount > 1 ? `<span class="text-[11px] bg-blush-100 text-blush-700 font-semibold px-2 py-0.5 rounded-full">Multi-Dog Household (${multiDogCount})</span>` : ''}
-                </div>
-                <p class="text-xs text-taupe-600">Owner: <span class="font-semibold text-taupe-900">${c.ownerName}</span></p>
-              </div>
-              <div class="flex gap-1.5">
-                <button onclick="addSecondDogForOwner('${c.id}')" class="text-xs text-blush-700 font-semibold bg-blush-50 border border-blush-200 px-2 py-1 rounded-lg">＋ 2nd Dog</button>
-                <button onclick="openClientModal('${c.id}')" class="text-xs text-taupe-800 font-semibold bg-beige-100 px-2.5 py-1 rounded-lg">Edit</button>
-              </div>
-            </div>
-            <p class="text-xs text-taupe-600">📍 ${c.ownerAddress}</p>
-            ${c.accessCode ? `<p class="text-xs text-amber-900 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg">🔑 Access: <strong>${c.accessCode}</strong></p>` : ''}
-            ${c.petHealth ? `<p class="text-xs text-blush-700 bg-blush-50 border border-blush-200 px-2.5 py-1 rounded-lg">🩺 Health/Notes: ${c.petHealth}</p>` : ''}
-            <div class="flex gap-2 pt-1 text-xs font-semibold">
-              <a href="tel:${c.ownerPhone}" class="flex-1 py-1.5 bg-beige-100 rounded-xl text-center text-taupe-800">📞 Call</a>
-              <a href="sms:${c.ownerPhone}" class="flex-1 py-1.5 bg-beige-100 rounded-xl text-center text-taupe-800">💬 Text</a>
-              <a href="http://maps.apple.com/?q=${encodeURIComponent(c.ownerAddress)}" target="_blank" class="flex-1 py-1.5 bg-beige-100 rounded-xl text-center text-taupe-800">🗺️ Map</a>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    // --- RATES ---
     function loadRatesInputs() {
       ['solo30', 'solo60', 'group60', 'pop30', 'pop60', 'secondDogDiscount'].forEach(k => {
         document.getElementById(`rate_${k}`).value = state.rates[k];
@@ -781,12 +1130,11 @@
         state.rates[k] = parseFloat(document.getElementById(`rate_${k}`).value) || 0;
       });
       persist();
-      alert('Rates & 2nd-dog discount saved!');
+      alert('Rates & discount saved!');
       renderSchedule();
       renderBilling();
     }
 
-    // --- WEEKLY BILLING & QUICKBOOKS (Grouped by Owner with 50% 2nd Dog Discount) ---
     function getWeeklyOwnerTotals() {
       const startStr = document.getElementById('billingWeekStart').value;
       if (!startStr) return { summary: {}, startStr: '', endStr: '' };
@@ -848,7 +1196,7 @@
       container.innerHTML = entries.map(e => {
         const dogList = Array.from(e.dogs).join(', ');
         return `
-          <div class="bg-white p-4 rounded-2xl shadow-sm border border-beige-200 space-y-2">
+          <div class="bg-white p-4 rounded-2xl shadow-xs border border-beige-200 space-y-2">
             <div class="flex justify-between items-center border-b border-beige-200 pb-2">
               <div>
                 <h4 class="font-bold text-taupe-900">${e.ownerName} <span class="text-xs font-normal text-taupe-600">(${dogList})</span></h4>
@@ -906,8 +1254,9 @@
       const { summary, startStr, endStr } = getWeeklyOwnerTotals();
       const entries = Object.values(summary);
       if (entries.length === 0) return alert('Nothing to copy for this week.');
+
       const text = entries.map(e =>
-        `${e.ownerName} (${Array.from(e.dogs).join(', ')}): £${e.total.toFixed(2)} (${e.items.length} dog-sessions)`
+        `${e.ownerName} (${Array.from(e.dogs).join(', ')}): £${e.total.toFixed(2)} (${e.items.length} sessions)`
       ).join('\n');
       navigator.clipboard.writeText(`Weekly Invoice Summary (${startStr} to ${endStr}):\n` + text);
       alert('Summary copied to clipboard!');
