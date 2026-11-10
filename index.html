@@ -5,39 +5,70 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>PawTrack Walker</title>
 
+  <!-- iOS Web App (PWA) Meta Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="PawTrack" />
   <meta name="theme-color" content="#fdf8f5" />
 
+  <!-- Dynamic Apple Touch Icon -->
   <link id="appleTouchIcon" rel="apple-touch-icon" href="logo.png" />
   <link id="favIcon" rel="icon" type="image/png" href="logo.png" />
 
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            beige: { 50: '#fdfaf7', 100: '#f9f1eb', 200: '#f1e3d8', 300: '#e5cebe' },
-            blush: { 50: '#fcf3f4', 100: '#f9e5e8', 200: '#f2ccd2', 300: '#e9b3bc', 400: '#df9aa6', 500: '#cf7d8b', 600: '#b86372', 700: '#994d5b', 800: '#7d3d49' },
-            taupe: { 600: '#6e5d54', 800: '#4a3e37', 900: '#362d28' }
+            beige: {
+              50: '#fdfaf7',
+              100: '#f9f1eb',
+              200: '#f1e3d8',
+              300: '#e5cebe',
+            },
+            blush: {
+              50: '#fcf3f4',
+              100: '#f9e5e8',
+              200: '#f2ccd2',
+              400: '#df9aa6',
+              500: '#cf7d8b',
+              600: '#b86372',
+              700: '#994d5b',
+            },
+            taupe: {
+              600: '#6e5d54',
+              800: '#4a3e37',
+              900: '#362d28',
+            }
           }
         }
       }
     }
   </script>
   <style>
-    body { -webkit-tap-highlight-color: transparent; padding-bottom: 96px; background-color: #fdfaf7; color: #362d28; }
-    /* 16px inputs stop iOS Safari zooming in when a field is tapped */
-    input, select, textarea { font-size: 16px !important; }
+    body { 
+      -webkit-tap-highlight-color: transparent; 
+      padding-bottom: 96px; 
+      background-color: #fdfaf7; 
+      color: #362d28; 
+    }
     .safe-top { padding-top: env(safe-area-inset-top, 16px); }
     .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 16px); }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
   </style>
 </head>
 <body class="font-sans min-h-screen">
 
-  <header class="bg-beige-100/95 backdrop-blur border-b border-beige-200 text-taupe-900 px-4 py-3 safe-top sticky top-0 z-20 flex justify-between items-center">
+  <!-- Top Header -->
+  <header class="bg-beige-100/95 backdrop-blur border-b border-beige-200 text-taupe-900 px-4 py-3 safe-top sticky top-0 z-20 flex justify-between items-center shadow-xs">
     <div class="flex items-center gap-2.5">
       <img id="headerLogo" src="" alt="Logo" class="w-9 h-9 rounded-xl object-cover border border-beige-300 hidden" />
       <div id="headerFallbackIcon" class="w-9 h-9 rounded-xl bg-blush-200 flex items-center justify-center text-lg">🐾</div>
@@ -49,47 +80,78 @@
     <span id="headerDate" class="text-xs bg-blush-100 text-blush-700 border border-blush-200 px-2.5 py-1 rounded-full font-semibold"></span>
   </header>
 
+  <!-- Main Content Container -->
   <main class="max-w-md mx-auto p-4 space-y-4">
 
     <!-- TAB 1: SCHEDULE -->
     <section id="tab-schedule" class="space-y-3.5">
-      <div class="bg-white p-2.5 rounded-2xl shadow-sm border border-beige-200 flex items-center justify-between gap-2">
-        <div class="flex bg-beige-100 rounded-lg p-0.5">
-          <button onclick="setScheduleView('day')" id="view-toggle-day" class="px-3 py-1 text-xs font-bold rounded-md bg-white text-taupe-900 shadow-sm">Daily</button>
-          <button onclick="setScheduleView('week')" id="view-toggle-week" class="px-3 py-1 text-xs font-semibold rounded-md text-taupe-600">Weekly</button>
+      
+      <!-- Toggle Daily/Weekly View & Date Header -->
+      <div class="bg-white p-2.5 rounded-2xl shadow-xs border border-beige-200 space-y-2.5">
+        <div class="flex items-center justify-between gap-2">
+          <!-- View Toggle -->
+          <div class="flex bg-beige-100 rounded-lg p-0.5">
+            <button onclick="setScheduleView('day')" id="view-toggle-day" class="px-3 py-1 text-xs font-bold rounded-md transition-colors bg-white text-taupe-900 shadow-xs">
+              Daily
+            </button>
+            <button onclick="setScheduleView('week')" id="view-toggle-week" class="px-3 py-1 text-xs font-semibold rounded-md transition-colors text-taupe-600">
+              Weekly View
+            </button>
+          </div>
+          
+          <!-- Date Navigator -->
+          <div class="flex items-center gap-1.5">
+            <button onclick="navigateSchedule(-1)" class="w-7 h-7 flex items-center justify-center bg-beige-50 border border-beige-200 rounded-lg font-bold text-taupe-800 active:bg-beige-100">◀</button>
+            <input type="date" id="scheduleDate" onchange="renderSchedule()" class="font-semibold text-center bg-transparent text-taupe-900 focus:outline-none text-xs w-28" />
+            <button onclick="navigateSchedule(1)" class="w-7 h-7 flex items-center justify-center bg-beige-50 border border-beige-200 rounded-lg font-bold text-taupe-800 active:bg-beige-100">▶</button>
+          </div>
         </div>
-        <div class="flex items-center gap-1.5">
-          <button onclick="navigateSchedule(-1)" class="w-8 h-8 flex items-center justify-center bg-beige-50 border border-beige-200 rounded-lg font-bold text-taupe-800 active:bg-beige-100">◀</button>
-          <input type="date" id="scheduleDate" onchange="renderSchedule()" class="font-semibold text-center bg-transparent text-taupe-900 focus:outline-none w-36" />
-          <button onclick="navigateSchedule(1)" class="w-8 h-8 flex items-center justify-center bg-beige-50 border border-beige-200 rounded-lg font-bold text-taupe-800 active:bg-beige-100">▶</button>
+
+        <!-- Weekly mini date ribbon -->
+        <div id="weekRibbon" class="grid grid-cols-7 gap-1 pt-1 border-t border-beige-100 hidden">
+          <!-- Populated by JS -->
         </div>
       </div>
 
+      <!-- Quick Action Buttons -->
       <div class="grid grid-cols-3 gap-2">
-        <button onclick="openBookingModal()" class="col-span-2 bg-blush-500 text-white font-bold py-3 px-3 rounded-2xl shadow-sm active:bg-blush-600 text-sm">＋ Book Service</button>
-        <button onclick="copyPreviousWeekSchedule()" class="bg-beige-100 border border-beige-300 text-taupe-800 font-semibold py-3 px-2 rounded-2xl text-xs active:bg-beige-200">🔄 Copy Last Wk</button>
+        <button onclick="openBookingModal()" class="col-span-2 bg-blush-500 text-white font-bold py-3 px-3 rounded-2xl shadow-xs active:bg-blush-600 text-sm flex items-center justify-center gap-1.5">
+          <span>＋ Book Service</span>
+        </button>
+        <button onclick="copyPreviousWeekSchedule()" class="bg-beige-100 border border-beige-300 text-taupe-800 font-semibold py-3 px-2 rounded-2xl text-xs active:bg-beige-200 text-center">
+          🔄 Copy Last Wk
+        </button>
       </div>
 
+      <!-- Bookings Lists -->
       <div id="dayBookingsList" class="space-y-2.5"></div>
     </section>
 
-    <!-- TAB 2: CLIENTS -->
+
+    <!-- TAB 2: EXPANDABLE CLIENTS BY OWNER -->
     <section id="tab-clients" class="hidden space-y-4">
       <div class="bg-blush-50 border border-blush-200 rounded-2xl p-3 text-xs text-taupe-800">
-        💡 <strong>Grouped by owner.</strong> Tap an owner to see their dogs, contact details and vet info. Two dogs from the same owner on one walk get the 2nd-dog discount automatically.
+        💡 <strong>Grouped by Owner:</strong> Expand any owner card to view individual dogs, contact details, notes, and vet information. Multi-dog bookings from the same owner automatically get the <strong>50% discount</strong>!
       </div>
-      <button onclick="openClientModal()" class="w-full bg-blush-500 text-white font-semibold py-3 rounded-2xl shadow-sm active:bg-blush-600 text-sm">＋ Add New Dog & Client</button>
+      
+      <button onclick="openClientModal()" class="w-full bg-blush-500 text-white font-semibold py-3 rounded-2xl shadow-xs active:bg-blush-600 text-sm">
+        ＋ Add New Dog & Client
+      </button>
+
+      <!-- Expand/Collapse All -->
       <div class="flex justify-end gap-2 text-xs">
         <button onclick="toggleAllClients(true)" class="text-blush-600 font-semibold">Expand All</button>
         <span class="text-beige-300">|</span>
         <button onclick="toggleAllClients(false)" class="text-taupe-600">Collapse All</button>
       </div>
+
       <div id="clientsGroupedList" class="space-y-3"></div>
     </section>
 
-    <!-- TAB 3: BILLING -->
+
+    <!-- TAB 3: WEEKLY INVOICING -->
     <section id="tab-billing" class="hidden space-y-4">
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-beige-200 space-y-3">
+      <div class="bg-white p-4 rounded-2xl shadow-xs border border-beige-200 space-y-3">
         <h2 class="font-bold text-taupe-900 text-base">Weekly Invoice Summary</h2>
         <div class="flex items-center justify-between gap-2 text-sm">
           <label class="text-taupe-600 font-medium">Week Starting (Mon):</label>
@@ -98,27 +160,35 @@
         <div class="bg-blush-50 border border-blush-200 rounded-xl p-3.5 flex justify-between items-center">
           <div>
             <span class="text-xs font-semibold uppercase tracking-wide text-blush-700 block">Total to Invoice</span>
-            <span class="text-[11px] text-taupe-600">Includes 2nd-dog discounts</span>
+            <span class="text-[11px] text-taupe-600">Includes 2nd-dog 50% discounts</span>
           </div>
           <span id="weeklyTotalAmount" class="text-2xl font-bold text-blush-700">£0.00</span>
         </div>
         <div class="grid grid-cols-2 gap-2 pt-1">
-          <button onclick="exportQuickBooksCSV()" class="bg-taupe-800 text-white text-xs font-semibold py-2.5 px-3 rounded-xl active:bg-taupe-900">📥 QuickBooks CSV</button>
-          <button onclick="copyWeeklySummary()" class="bg-blush-500 text-white text-xs font-semibold py-2.5 px-3 rounded-xl active:bg-blush-600">📋 Copy Summary</button>
+          <button onclick="exportQuickBooksCSV()" class="bg-taupe-800 text-white text-xs font-semibold py-2.5 px-3 rounded-xl active:bg-taupe-900">
+            📥 QuickBooks CSV
+          </button>
+          <button onclick="copyWeeklySummary()" class="bg-blush-500 text-white text-xs font-semibold py-2.5 px-3 rounded-xl active:bg-blush-600">
+            📋 Copy Summary
+          </button>
         </div>
       </div>
+
       <div id="billingBreakdown" class="space-y-3"></div>
     </section>
 
-    <!-- TAB 4: SETTINGS -->
+
+    <!-- TAB 4: RATES, BRANDING & BACKUP -->
     <section id="tab-rates" class="hidden space-y-4">
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-beige-200 space-y-3">
+      
+      <!-- App Icon / Logo Uploader -->
+      <div class="bg-white p-4 rounded-2xl shadow-xs border border-beige-200 space-y-3">
         <h2 class="font-bold text-taupe-900 text-base">Branding & iPhone App Icon</h2>
-        <p class="text-xs text-taupe-600">Upload your logo, then tap <strong>Share → Add to Home Screen</strong> in Safari so it becomes the app icon.</p>
+        <p class="text-xs text-taupe-600">Upload your business logo, then tap <strong>Share → Add to Home Screen</strong> in Safari so it becomes the app icon.</p>
         <div class="flex items-center gap-3">
           <img id="settingsLogoPreview" src="" class="w-14 h-14 rounded-2xl object-cover border border-beige-300 bg-beige-50 hidden" />
           <div class="flex-1 space-y-2">
-            <input id="brandNameInput" placeholder="Business Name (e.g. Bella's Walks)" class="w-full border border-beige-300 bg-beige-50 rounded-xl px-3 py-2 font-semibold" onchange="saveBrandName()" />
+            <input id="brandNameInput" placeholder="Business Name (e.g. Bella's Walks)" class="w-full border border-beige-300 bg-beige-50 rounded-xl px-3 py-2 text-xs font-semibold" onchange="saveBrandName()" />
             <label class="block w-full bg-blush-100 border border-blush-200 text-blush-700 text-xs font-semibold py-2 rounded-xl text-center cursor-pointer active:bg-blush-200">
               🖼️ Upload Logo Image
               <input type="file" accept="image/*" onchange="handleLogoUpload(event)" class="hidden" />
@@ -127,14 +197,30 @@
         </div>
       </div>
 
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-beige-200 space-y-3">
+      <!-- Service Rates & Multi-Dog Discount -->
+      <div class="bg-white p-4 rounded-2xl shadow-xs border border-beige-200 space-y-3">
         <h2 class="font-bold text-taupe-900 text-base">Service Rates & Discounts</h2>
         <div class="space-y-2.5 text-sm">
-          <div class="flex justify-between items-center"><label>Solo Walk (30 mins)</label><input type="number" step="0.5" id="rate_solo30" class="w-24 border border-beige-300 bg-beige-50 rounded-xl px-2.5 py-1.5 text-right font-semibold" /></div>
-          <div class="flex justify-between items-center"><label>Solo Walk (60 mins)</label><input type="number" step="0.5" id="rate_solo60" class="w-24 border border-beige-300 bg-beige-50 rounded-xl px-2.5 py-1.5 text-right font-semibold" /></div>
-          <div class="flex justify-between items-center"><label>Group Walk (60 mins)</label><input type="number" step="0.5" id="rate_group60" class="w-24 border border-beige-300 bg-beige-50 rounded-xl px-2.5 py-1.5 text-right font-semibold" /></div>
-          <div class="flex justify-between items-center"><label>Pop-In Visit (30 mins)</label><input type="number" step="0.5" id="rate_pop30" class="w-24 border border-beige-300 bg-beige-50 rounded-xl px-2.5 py-1.5 text-right font-semibold" /></div>
-          <div class="flex justify-between items-center"><label>Pop-In Visit (60 mins)</label><input type="number" step="0.5" id="rate_pop60" class="w-24 border border-beige-300 bg-beige-50 rounded-xl px-2.5 py-1.5 text-right font-semibold" /></div>
+          <div class="flex justify-between items-center">
+            <label>Solo Walk (30 mins)</label>
+            <input type="number" step="0.5" id="rate_solo30" class="w-24 border border-beige-300 bg-beige-50 rounded-xl px-2.5 py-1.5 text-right font-semibold" />
+          </div>
+          <div class="flex justify-between items-center">
+            <label>Solo Walk (60 mins)</label>
+            <input type="number" step="0.5" id="rate_solo60" class="w-24 border border-beige-300 bg-beige-50 rounded-xl px-2.5 py-1.5 text-right font-semibold" />
+          </div>
+          <div class="flex justify-between items-center">
+            <label>Group Walk (60 mins)</label>
+            <input type="number" step="0.5" id="rate_group60" class="w-24 border border-beige-300 bg-beige-50 rounded-xl px-2.5 py-1.5 text-right font-semibold" />
+          </div>
+          <div class="flex justify-between items-center">
+            <label>Pop-In Visit (30 mins)</label>
+            <input type="number" step="0.5" id="rate_pop30" class="w-24 border border-beige-300 bg-beige-50 rounded-xl px-2.5 py-1.5 text-right font-semibold" />
+          </div>
+          <div class="flex justify-between items-center">
+            <label>Pop-In Visit (60 mins)</label>
+            <input type="number" step="0.5" id="rate_pop60" class="w-24 border border-beige-300 bg-beige-50 rounded-xl px-2.5 py-1.5 text-right font-semibold" />
+          </div>
           <hr class="border-beige-200" />
           <div class="flex justify-between items-center">
             <div>
@@ -144,14 +230,19 @@
             <input type="number" step="5" min="0" max="100" id="rate_secondDogDiscount" class="w-24 border border-blush-200 bg-blush-50 rounded-xl px-2.5 py-1.5 text-right font-bold text-blush-700" />
           </div>
         </div>
-        <button onclick="saveRates()" class="w-full bg-blush-500 text-white font-semibold py-2.5 rounded-xl mt-2 active:bg-blush-600 text-sm">Save Rates & Discount</button>
+        <button onclick="saveRates()" class="w-full bg-blush-500 text-white font-semibold py-2.5 rounded-xl mt-2 active:bg-blush-600 text-sm">
+          Save Rates & Discount
+        </button>
       </div>
 
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-beige-200 space-y-3">
+      <!-- Backup & Restore -->
+      <div class="bg-white p-4 rounded-2xl shadow-xs border border-beige-200 space-y-3">
         <h2 class="font-bold text-taupe-900 text-base">iPhone Data Backup</h2>
-        <p class="text-xs text-taupe-600">Save a backup copy to your Files app so your clients and calendar are always safe.</p>
+        <p class="text-xs text-taupe-600">Save a backup copy to your iPhone Files app so your clients and calendar are always safe.</p>
         <div class="flex gap-2">
-          <button onclick="exportBackupJSON()" class="flex-1 bg-beige-100 border border-beige-300 text-taupe-800 text-xs font-semibold py-2.5 rounded-xl">⬇️ Download Backup</button>
+          <button onclick="exportBackupJSON()" class="flex-1 bg-beige-100 border border-beige-300 text-taupe-800 text-xs font-semibold py-2.5 rounded-xl">
+            ⬇️ Download Backup
+          </button>
           <label class="flex-1 bg-beige-100 border border-beige-300 text-taupe-800 text-xs font-semibold py-2.5 rounded-xl text-center cursor-pointer">
             ⬆️ Restore Backup
             <input type="file" accept=".json" onchange="importBackupJSON(event)" class="hidden" />
@@ -159,48 +250,52 @@
         </div>
       </div>
     </section>
+
   </main>
 
-  <!-- MODAL: CLIENT -->
-  <div id="clientModal" class="fixed inset-0 bg-black/40 z-30 hidden items-end sm:items-center justify-center p-0 sm:p-4">
+  <!-- MODAL: ADD/EDIT CLIENT -->
+  <div id="clientModal" class="fixed inset-0 bg-black/40 z-30 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="bg-beige-50 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-3 max-h-[90vh] overflow-y-auto border-t border-beige-200 shadow-xl">
       <h3 class="font-bold text-lg text-taupe-900">Dog & Client Details</h3>
       <input type="hidden" id="clientId" />
-      <input id="dogName" placeholder="Dog Name (e.g. Barnaby) *" class="w-full border border-beige-300 bg-white rounded-xl p-2.5" />
-      <input id="ownerName" placeholder="Owner Full Name *" class="w-full border border-beige-300 bg-white rounded-xl p-2.5" />
+      <input id="dogName" placeholder="Dog Name (e.g. Barnaby) *" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
+      <input id="ownerName" placeholder="Owner Full Name *" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
       <div class="grid grid-cols-2 gap-2">
-        <input id="ownerPhone" type="tel" placeholder="Phone Number *" class="w-full border border-beige-300 bg-white rounded-xl p-2.5" />
-        <input id="ownerEmail" type="email" placeholder="Email (QuickBooks)" class="w-full border border-beige-300 bg-white rounded-xl p-2.5" />
+        <input id="ownerPhone" type="tel" placeholder="Phone Number *" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
+        <input id="ownerEmail" type="email" placeholder="Email (QuickBooks)" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
       </div>
-      <input id="ownerAddress" placeholder="Pickup Address *" class="w-full border border-beige-300 bg-white rounded-xl p-2.5" />
-      <input id="accessCode" placeholder="Keysafe / Alarm / Gate Code" class="w-full border border-beige-300 bg-white rounded-xl p-2.5" />
+      <input id="ownerAddress" placeholder="Pickup Address *" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
+      <input id="accessCode" placeholder="Keysafe / Alarm / Gate Code" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
+      
+      <!-- Vet Info Section -->
       <div class="border-t border-beige-200 pt-2.5 space-y-2">
         <label class="text-xs font-bold text-taupe-800">Veterinary Information</label>
-        <input id="vetClinic" placeholder="Vet Clinic Name / Hospital" class="w-full border border-beige-300 bg-white rounded-xl p-2.5" />
-        <input id="vetPhone" type="tel" placeholder="Vet Phone Number" class="w-full border border-beige-300 bg-white rounded-xl p-2.5" />
+        <input id="vetClinic" placeholder="Vet Clinic Name / Hospital" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
+        <input id="vetPhone" type="tel" placeholder="Vet Phone Number" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
       </div>
-      <textarea id="petHealth" rows="3" placeholder="Pet Health, Allergies, Recall/Lead Notes..." class="w-full border border-beige-300 bg-white rounded-xl p-2.5"></textarea>
+
+      <textarea id="petHealth" rows="3" placeholder="Pet Health, Allergies, Recall/Lead Notes..." class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm"></textarea>
+      
       <div class="flex gap-2 pt-2">
         <button onclick="closeClientModal()" class="flex-1 py-2.5 bg-beige-200 text-taupe-800 rounded-xl font-semibold text-sm">Cancel</button>
         <button onclick="saveClient()" class="flex-1 py-2.5 bg-blush-500 text-white rounded-xl font-semibold text-sm">Save Client</button>
       </div>
-      <button id="clientDeleteBtn" onclick="deleteClient()" class="w-full py-2 text-xs text-rose-700 font-semibold hidden">Delete this dog</button>
     </div>
   </div>
 
-  <!-- MODAL: BOOKING -->
-  <div id="bookingModal" class="fixed inset-0 bg-black/40 z-30 hidden items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="bg-beige-50 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-3 max-h-[92vh] overflow-y-auto border-t border-beige-200 shadow-xl">
-      <h3 class="font-bold text-lg text-taupe-900">Book a Service</h3>
-
+  <!-- MODAL: BOOK WALK -->
+  <div id="bookingModal" class="fixed inset-0 bg-black/40 z-30 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-beige-5 p-5 w-full max-w-md rounded-t-3xl sm:rounded-3xl space-y-3 max-h-[92vh] overflow-y-auto border-t border-beige-200 shadow-xl">
+      <h3 class="font-bold text-lg text-taupe-900">Schedule Walk or Pop-In</h3>
+      
       <div class="grid grid-cols-2 gap-2">
         <div>
-          <label class="text-xs font-semibold text-taupe-600">Date</label>
-          <input type="date" id="bookingDate" onchange="refreshTimeOptions()" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 font-medium mt-1" />
+          <label class="text-xs font-semibold text-taupe-600">Start Time (15m slots)</label>
+          <select id="bookingStartTime" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm font-medium mt-1"></select>
         </div>
         <div>
-          <label class="text-xs font-semibold text-taupe-600">Service</label>
-          <select id="bookingServiceType" onchange="onServiceChange()" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 font-medium mt-1">
+          <label class="text-xs font-semibold text-taupe-600">Service Type</label>
+          <select id="bookingServiceType" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm font-medium mt-1">
             <option value="solo30">Solo Walk (30m)</option>
             <option value="solo60">Solo Walk (60m)</option>
             <option value="group60">Group Walk (60m)</option>
@@ -211,37 +306,26 @@
       </div>
 
       <div>
-        <label class="text-xs font-semibold text-taupe-600">Start Time (15-min slots)</label>
-        <select id="bookingStartTime" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 font-medium mt-1"></select>
-        <p id="timeHint" class="text-[11px] text-taupe-600 mt-1">Times already booked out are greyed out and can't be selected.</p>
+        <label class="text-xs font-semibold text-taupe-600">Select Dog(s)</label>
+        <div id="bookingDogsChecklist" class="border border-beige-300 bg-white rounded-xl p-2.5 max-h-40 overflow-y-auto space-y-1.5 mt-1"></div>
       </div>
 
-      <div>
-        <div class="flex items-center justify-between">
-          <label class="text-xs font-semibold text-taupe-600">Dogs</label>
-          <span id="dogRuleHint" class="text-[11px] text-taupe-600"></span>
-        </div>
-        <input id="dogSearch" type="search" oninput="renderDogPicker()" placeholder="🔍 Search dog or owner name..." class="w-full border border-beige-300 bg-white rounded-xl p-2.5 mt-1" autocomplete="off" />
-        <div id="selectedDogChips" class="flex flex-wrap gap-1.5 mt-2"></div>
-        <div id="bookingDogsChecklist" class="border border-beige-300 bg-white rounded-xl max-h-48 overflow-y-auto mt-2 divide-y divide-beige-100"></div>
-        <p id="bookingPricePreview" class="text-xs text-taupe-800 font-semibold mt-1.5 text-right"></p>
-      </div>
-
+      <!-- Recurring Slot Settings -->
       <div class="bg-white border border-beige-300 rounded-xl p-3 space-y-2.5">
         <label class="flex items-center justify-between text-sm font-semibold text-taupe-900 cursor-pointer">
           <span>🔁 Repeat Weekly (Recurring Slot)</span>
           <input type="checkbox" id="bookingIsRecurring" onchange="toggleRecurringOptions()" class="w-4 h-4 accent-blush-500" />
         </label>
         <div id="recurringOptionsBox" class="hidden space-y-2 pt-1 border-t border-beige-200">
-          <p class="text-[11px] text-taupe-600">Select days of the week to repeat this booking:</p>
+          <p class="text-[11px] text-taupe-600">Select days of the week to repeat this walk:</p>
           <div class="grid grid-cols-7 gap-1 text-center text-xs font-semibold">
-            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="1" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>Mon</span></label>
-            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="2" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>Tue</span></label>
-            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="3" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>Wed</span></label>
-            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="4" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>Thu</span></label>
-            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="5" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>Fri</span></label>
-            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="6" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>Sat</span></label>
-            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="0" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>Sun</span></label>
+            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="1" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>M</span></label>
+            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="2" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>T</span></label>
+            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="3" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>W</span></label>
+            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="4" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>T</span></label>
+            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="5" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>F</span></label>
+            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="6" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>S</span></label>
+            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="0" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>S</span></label>
           </div>
           <div class="flex items-center justify-between text-xs pt-1">
             <span class="text-taupe-600 font-medium">Repeat for how many weeks?</span>
@@ -255,7 +339,7 @@
         </div>
       </div>
 
-      <input id="bookingNotes" placeholder="Session notes (e.g. Towel dry, give meds)..." class="w-full border border-beige-300 bg-white rounded-xl p-2.5" />
+      <input id="bookingNotes" placeholder="Session notes (e.g. Towel dry, give meds)..." class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
 
       <div class="flex gap-2 pt-2">
         <button onclick="closeBookingModal()" class="flex-1 py-2.5 bg-beige-200 text-taupe-800 rounded-xl font-semibold text-sm">Cancel</button>
@@ -264,104 +348,91 @@
     </div>
   </div>
 
-  <!-- MODAL: BOOKING DETAILS -->
-  <div id="detailsModal" class="fixed inset-0 bg-black/40 z-30 hidden items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="bg-beige-50 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 max-h-[90vh] overflow-y-auto border-t border-beige-200 shadow-xl">
+  <!-- DETAILS MODAL -->
+  <div id="detailsModal" class="fixed inset-0 bg-black/40 z-30 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-beige-50 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 max-h-[90vh] overflow-y-auto border-t border-beige-200 shadow-xl animate-fade-in">
       <div class="flex justify-between items-start">
         <div>
           <h3 id="detTime" class="font-extrabold text-xl text-taupe-900"></h3>
           <span id="detServiceBadge" class="inline-block text-xs font-bold px-2.5 py-0.5 rounded-full mt-1.5"></span>
-          <p id="detDate" class="text-xs text-taupe-600 mt-1"></p>
         </div>
-        <button onclick="closeDetailsModal()" class="text-taupe-600 text-lg font-bold px-2">✕</button>
+        <button onclick="closeDetailsModal()" class="text-taupe-600 hover:text-taupe-900 text-lg font-bold">✕</button>
       </div>
+
+      <!-- Dogs Information -->
       <div id="detDogsSection" class="space-y-3"></div>
-      <div id="detNotesBox" class="bg-white border border-beige-200 rounded-2xl p-3 hidden">
-        <span class="text-xs font-bold text-taupe-600 block mb-1">📝 Notes</span>
-        <p id="detNotes" class="text-xs text-taupe-800 italic whitespace-pre-line"></p>
+
+      <!-- General Booking Notes -->
+      <div id="detNotesBox" class="bg-white border border-beige-200 rounded-2xl p-3 shadow-2xs hidden">
+        <span class="text-xs font-bold text-taupe-600 block mb-1">📝 Walk/Visit Notes</span>
+        <p id="detNotes" class="text-xs text-taupe-800 italic"></p>
       </div>
+
+      <!-- Delete Options -->
       <div class="pt-2.5 border-t border-beige-200 flex flex-col gap-2">
-        <button id="detDeleteBtn" class="w-full py-3 bg-rose-100 text-rose-700 font-bold rounded-xl text-xs">✕ Cancel / Delete This Booking</button>
-        <button id="detDeleteSeriesBtn" class="w-full py-3 bg-rose-200 text-rose-900 font-bold rounded-xl text-xs hidden">✕ Delete This & All Future in Series</button>
+        <button id="detDeleteBtn" class="w-full py-3 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold rounded-xl text-xs transition-colors">
+          ✕ Cancel / Delete This Booking
+        </button>
+        <button id="detDeleteSeriesBtn" class="w-full py-3 bg-rose-200 hover:bg-rose-300 text-rose-900 font-bold rounded-xl text-xs transition-colors hidden">
+          ✕ Cancel / Delete All Future in Series
+        </button>
       </div>
     </div>
   </div>
 
-  <nav class="fixed bottom-0 inset-x-0 bg-beige-100/95 backdrop-blur border-t border-beige-200 flex justify-around py-2 safe-bottom z-20 max-w-md mx-auto">
-    <button onclick="switchTab('schedule')" id="nav-schedule" class="flex flex-col items-center text-blush-600 font-bold text-xs"><span class="text-lg">📅</span><span>Schedule</span></button>
-    <button onclick="switchTab('clients')" id="nav-clients" class="flex flex-col items-center text-taupe-600 font-medium text-xs"><span class="text-lg">🐶</span><span>Clients</span></button>
-    <button onclick="switchTab('billing')" id="nav-billing" class="flex flex-col items-center text-taupe-600 font-medium text-xs"><span class="text-lg">💷</span><span>Invoices</span></button>
-    <button onclick="switchTab('rates')" id="nav-rates" class="flex flex-col items-center text-taupe-600 font-medium text-xs"><span class="text-lg">⚙️</span><span>Settings</span></button>
+  <!-- Bottom Navigation Bar -->
+  <nav class="fixed bottom-0 inset-x-0 bg-beige-100/95 backdrop-blur border-t border-beige-200 flex justify-around py-2 safe-bottom z-20 max-w-md mx-auto shadow-lg">
+    <button onclick="switchTab('schedule')" id="nav-schedule" class="flex flex-col items-center text-blush-600 font-bold text-xs">
+      <span class="text-lg">📅</span><span>Schedule</span>
+    </button>
+    <button onclick="switchTab('clients')" id="nav-clients" class="flex flex-col items-center text-taupe-600 font-medium text-xs">
+      <span class="text-lg">🐶</span><span>Clients</span>
+    </button>
+    <button onclick="switchTab('billing')" id="nav-billing" class="flex flex-col items-center text-taupe-600 font-medium text-xs">
+      <span class="text-lg">💷</span><span>Invoices</span>
+    </button>
+    <button onclick="switchTab('rates')" id="nav-rates" class="flex flex-col items-center text-taupe-600 font-medium text-xs">
+      <span class="text-lg">⚙️</span><span>Settings</span>
+    </button>
   </nav>
 
   <script>
-    // ---------- SAFE STORAGE ----------
-    function lsGet(key, fallback) {
-      try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; }
-    }
-    function lsGetRaw(key, fallback) {
-      try { return localStorage.getItem(key) || fallback; } catch (e) { return fallback; }
-    }
-
-    // ---------- SERVICES ----------
+    // --- SERVICE METADATA ---
     const SERVICE_META = {
-      solo30:  { label: 'Solo Walk (30m)',  duration: 30, group: false, badge: 'bg-blush-100 text-blush-700 border border-blush-200' },
-      solo60:  { label: 'Solo Walk (60m)',  duration: 60, group: false, badge: 'bg-blush-200 text-blush-800 border border-blush-300' },
-      group60: { label: 'Group Walk (60m)', duration: 60, group: true,  badge: 'bg-beige-200 text-taupe-900 border border-beige-300' },
-      pop30:   { label: 'Pop-In (30m)',     duration: 30, group: false, badge: 'bg-amber-100 text-amber-800 border border-amber-200' },
-      pop60:   { label: 'Pop-In (60m)',     duration: 60, group: false, badge: 'bg-orange-50 text-orange-800 border border-orange-200' }
+      solo30:  { label: 'Solo Walk (30m)',  duration: 30, badge: 'bg-blush-100 text-blush-700 border border-blush-200' },
+      solo60:  { label: 'Solo Walk (60m)',  duration: 60, badge: 'bg-blush-200 text-blush-800 border border-blush-300' },
+      group60: { label: 'Group Walk (60m)', duration: 60, badge: 'bg-beige-200 text-taupe-900 border border-beige-300' },
+      pop30:   { label: 'Pop-In (30m)',     duration: 30, badge: 'bg-amber-100 text-amber-800 border border-amber-200' },
+      pop60:   { label: 'Pop-In (60m)',     duration: 60, badge: 'bg-orange-50 text-orange-800 border border-orange-200' }
     };
-    const defaultRates = { solo30: 14, solo60: 22, group60: 16, pop30: 12, pop60: 18, secondDogDiscount: 50 };
-    const DAY_START = 6 * 60;   // first start slot 06:00
-    const DAY_END = 21 * 60;    // last start slot 21:00
+
+    const defaultRates = { 
+      solo30: 14, 
+      solo60: 22, 
+      group60: 16, 
+      pop30: 12, 
+      pop60: 18, 
+      secondDogDiscount: 50 
+    };
 
     let state = {
-      clients: lsGet('pt_clients', []),
-      bookings: lsGet('pt_bookings', []),
-      rates: Object.assign({}, defaultRates, lsGet('pt_rates', {})),
-      brandName: lsGetRaw('pt_brandName', 'PawTrack'),
-      logoDataUrl: lsGetRaw('pt_logo', ''),
+      clients: JSON.parse(localStorage.getItem('pt_clients') || '[]'),
+      bookings: JSON.parse(localStorage.getItem('pt_bookings') || '[]'),
+      rates: Object.assign({}, defaultRates, JSON.parse(localStorage.getItem('pt_rates') || '{}')),
+      brandName: localStorage.getItem('pt_brandName') || 'PawTrack',
+      logoDataUrl: localStorage.getItem('pt_logo') || '',
       scheduleView: 'day',
-      expandedOwners: lsGet('pt_exp_owners', {})
+      expandedOwners: JSON.parse(localStorage.getItem('pt_exp_owners') || '{}')
     };
 
-    // Tidy bookings saved by earlier versions of the app
-    state.bookings = state.bookings.map(b => Object.assign({}, b, {
-      seriesId: b.seriesId || b.recurringId || null,
-      endTime: b.endTime || addMinutes(b.startTime, durationOf(b.serviceType))
-    }));
-
     function persist() {
-      try {
-        localStorage.setItem('pt_clients', JSON.stringify(state.clients));
-        localStorage.setItem('pt_bookings', JSON.stringify(state.bookings));
-        localStorage.setItem('pt_rates', JSON.stringify(state.rates));
-        localStorage.setItem('pt_brandName', state.brandName);
-        localStorage.setItem('pt_exp_owners', JSON.stringify(state.expandedOwners));
-        if (state.logoDataUrl) localStorage.setItem('pt_logo', state.logoDataUrl);
-      } catch (e) {
-        alert('Could not save on this device (storage full or blocked).');
-      }
+      localStorage.setItem('pt_clients', JSON.stringify(state.clients));
+      localStorage.setItem('pt_bookings', JSON.stringify(state.bookings));
+      localStorage.setItem('pt_rates', JSON.stringify(state.rates));
+      localStorage.setItem('pt_brandName', state.brandName);
+      localStorage.setItem('pt_exp_owners', JSON.stringify(state.expandedOwners));
+      if (state.logoDataUrl) localStorage.setItem('pt_logo', state.logoDataUrl);
     }
-
-    // ---------- HELPERS ----------
-    function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
-    function esc(s) {
-      return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    }
-    function durationOf(serviceType) { return (SERVICE_META[serviceType] || { duration: 30 }).duration; }
-    function money(n) { return '£' + (Math.round(n * 100) / 100).toFixed(2); }
-
-    // Local-time date helpers (toISOString shifts the day with time zones)
-    function fmtDate(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
-    function parseDate(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
-    function addDays(s, n) { const d = parseDate(s); d.setDate(d.getDate() + n); return fmtDate(d); }
-    function mondayOf(s) { const d = parseDate(s); const day = d.getDay(); d.setDate(d.getDate() - (day === 0 ? 6 : day - 1)); return fmtDate(d); }
-    function prettyDate(s) { return parseDate(s).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }); }
-
-    function toMinutes(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
-    function fromMinutes(total) { return String(Math.floor(total / 60) % 24).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0'); }
-    function addMinutes(t, mins) { return fromMinutes(toMinutes(t) + mins); }
 
     function getOwnerKey(client) {
       const nameKey = (client.ownerName || '').trim().toLowerCase();
@@ -370,44 +441,43 @@
     }
 
     function calculateBookingDogPrices(booking) {
-      const baseRate = Number(state.rates[booking.serviceType]) || 0;
+      const baseRate = state.rates[booking.serviceType] || 0;
       const discountPct = (state.rates.secondDogDiscount ?? 50) / 100;
-      const seen = {};
+
+      const ownerSeenCount = {};
       const results = [];
+
       booking.dogIds.forEach(dogId => {
         const client = state.clients.find(c => c.id === dogId);
         if (!client) return;
-        const key = getOwnerKey(client);
-        seen[key] = (seen[key] || 0) + 1;
-        const isSecondDog = seen[key] > 1;
+        const ownerKey = getOwnerKey(client);
+        ownerSeenCount[ownerKey] = (ownerSeenCount[ownerKey] || 0) + 1;
+        
+        const isSecondDog = ownerSeenCount[ownerKey] > 1;
+        const finalPrice = isSecondDog ? baseRate * (1 - discountPct) : baseRate;
         results.push({
-          client, isSecondDog, baseRate,
-          finalPrice: isSecondDog ? baseRate * (1 - discountPct) : baseRate,
+          client,
+          isSecondDog,
+          baseRate,
+          finalPrice,
           discountPct: state.rates.secondDogDiscount ?? 50
         });
       });
       return results;
     }
-    function bookingTotal(b) { return calculateBookingDogPrices(b).reduce((s, r) => s + r.finalPrice, 0); }
 
-    // Does a booking starting at startTime for this service clash with anything already booked that day?
-    function findConflict(date, startTime, serviceType, ignoreId) {
-      const s = toMinutes(startTime);
-      const e = s + durationOf(serviceType);
-      return state.bookings.find(b =>
-        b.date === date && b.id !== ignoreId &&
-        s < toMinutes(b.endTime) && e > toMinutes(b.startTime));
-    }
-
-    function showModal(id) { const el = document.getElementById(id); el.classList.remove('hidden'); el.classList.add('flex'); }
-    function hideModal(id) { const el = document.getElementById(id); el.classList.add('hidden'); el.classList.remove('flex'); }
-
-    // ---------- INIT ----------
+    // --- INIT ---
     window.addEventListener('DOMContentLoaded', () => {
-      const today = fmtDate(new Date());
+      const today = new Date().toISOString().split('T')[0];
       document.getElementById('scheduleDate').value = today;
-      document.getElementById('headerDate').textContent = new Date().toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric' });
-      document.getElementById('billingWeekStart').value = mondayOf(today);
+      document.getElementById('headerDate').textContent = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+
+      const d = new Date();
+      const day = d.getDay(), diff = d.getDate() - day + (day === 0 ? -6 : 1);
+      const monday = new Date(d.setDate(diff)).toISOString().split('T')[0];
+      document.getElementById('billingWeekStart').value = monday;
+
+      populate15MinSlots();
       applyBranding();
       loadRatesInputs();
       renderSchedule();
@@ -415,11 +485,12 @@
       renderBilling();
     });
 
-    // ---------- BRANDING ----------
+    // --- BRANDING & LOGO ---
     function applyBranding() {
       document.getElementById('headerBrandName').textContent = state.brandName || 'PawTrack';
       document.getElementById('brandNameInput').value = state.brandName || 'PawTrack';
       document.title = state.brandName || 'PawTrack';
+
       if (state.logoDataUrl) {
         document.getElementById('headerLogo').src = state.logoDataUrl;
         document.getElementById('headerLogo').classList.remove('hidden');
@@ -430,10 +501,13 @@
         document.getElementById('favIcon').href = state.logoDataUrl;
       }
     }
+
     function saveBrandName() {
       state.brandName = document.getElementById('brandNameInput').value.trim() || 'PawTrack';
-      persist(); applyBranding();
+      persist();
+      applyBranding();
     }
+
     function handleLogoUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -442,26 +516,58 @@
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          canvas.width = 180; canvas.height = 180;
+          canvas.width = 180;
+          canvas.height = 180;
           const ctx = canvas.getContext('2d');
           ctx.fillStyle = '#fdfaf7';
           ctx.fillRect(0, 0, 180, 180);
+          
           const minSide = Math.min(img.width, img.height);
-          ctx.drawImage(img, (img.width - minSide) / 2, (img.height - minSide) / 2, minSide, minSide, 0, 0, 180, 180);
+          const sx = (img.width - minSide) / 2;
+          const sy = (img.height - minSide) / 2;
+
+          ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, 180, 180);
           state.logoDataUrl = canvas.toDataURL('image/png');
-          persist(); applyBranding();
-          alert('Logo updated! Now tap Share → Add to Home Screen in Safari to use it as your app icon.');
+          persist();
+          applyBranding();
+          alert('Logo updated! Save to Home Screen in Safari to see it as your app icon.');
         };
         img.src = e.target.result;
       };
       reader.readAsDataURL(file);
     }
 
-    // ---------- NAVIGATION ----------
+    function populate15MinSlots() {
+      const sel = document.getElementById('bookingStartTime');
+      sel.innerHTML = '';
+      for (let h = 6; h <= 21; h++) {
+        for (let m of [0, 15, 30, 45]) {
+          if (h === 21 && m > 0) continue;
+          const hh = String(h).padStart(2, '0');
+          const mm = String(m).padStart(2, '0');
+          const opt = document.createElement('option');
+          opt.value = `${hh}:${mm}`;
+          opt.textContent = `${hh}:${mm}`;
+          if (h === 9 && m === 0) opt.selected = true;
+          sel.appendChild(opt);
+        }
+      }
+    }
+
+    function addMinutes(timeStr, mins) {
+      const [h, m] = timeStr.split(':').map(Number);
+      const total = h * 60 + m + mins;
+      const nh = String(Math.floor(total / 60) % 24).padStart(2, '0');
+      const nm = String(total % 60).padStart(2, '0');
+      return `${nh}:${nm}`;
+    }
+
+    // --- NAVIGATION ---
     function switchTab(tab) {
       ['schedule', 'clients', 'billing', 'rates'].forEach(t => {
-        document.getElementById('tab-' + t).classList.toggle('hidden', t !== tab);
-        document.getElementById('nav-' + t).className = t === tab
+        document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
+        const nav = document.getElementById(`nav-${t}`);
+        nav.className = t === tab
           ? 'flex flex-col items-center text-blush-600 font-bold text-xs'
           : 'flex flex-col items-center text-taupe-600 font-medium text-xs';
       });
@@ -470,339 +576,333 @@
       if (tab === 'clients') renderClients();
     }
 
-    // ---------- SCHEDULE ----------
+    // --- EXPANDABLE CLIENT CARDS ---
+    function toggleOwnerCard(ownerKey) {
+      state.expandedOwners[ownerKey] = !state.expandedOwners[ownerKey];
+      persist();
+      renderClients();
+    }
+
+    function toggleAllClients(expand) {
+      const owners = getGroupedClients();
+      Object.keys(owners).forEach(k => {
+        state.expandedOwners[k] = expand;
+      });
+      persist();
+      renderClients();
+    }
+
+    function getGroupedClients() {
+      const grouped = {};
+      state.clients.forEach(c => {
+        const key = getOwnerKey(c);
+        if (!grouped[key]) {
+          grouped[key] = {
+            ownerName: c.ownerName,
+            ownerPhone: c.ownerPhone,
+            ownerEmail: c.ownerEmail,
+            ownerAddress: c.ownerAddress,
+            accessCode: c.accessCode,
+            vetClinic: c.vetClinic || '',
+            vetPhone: c.vetPhone || '',
+            dogs: []
+          };
+        }
+        grouped[key].dogs.push(c);
+      });
+      return grouped;
+    }
+
+    // --- SCHEDULE VIEWS (Day / Week) ---
     function setScheduleView(view) {
       state.scheduleView = view;
-      document.getElementById('view-toggle-day').className = view === 'day'
-        ? 'px-3 py-1 text-xs font-bold rounded-md bg-white text-taupe-900 shadow-sm'
-        : 'px-3 py-1 text-xs font-semibold rounded-md text-taupe-600';
-      document.getElementById('view-toggle-week').className = view === 'week'
-        ? 'px-3 py-1 text-xs font-bold rounded-md bg-white text-taupe-900 shadow-sm'
-        : 'px-3 py-1 text-xs font-semibold rounded-md text-taupe-600';
+      document.getElementById('view-toggle-day').className = view === 'day' 
+        ? "px-3 py-1 text-xs font-bold rounded-md transition-colors bg-white text-taupe-900 shadow-xs"
+        : "px-3 py-1 text-xs font-semibold rounded-md transition-colors text-taupe-600";
+      
+      document.getElementById('view-toggle-week').className = view === 'week' 
+        ? "px-3 py-1 text-xs font-bold rounded-md transition-colors bg-white text-taupe-900 shadow-xs"
+        : "px-3 py-1 text-xs font-semibold rounded-md transition-colors text-taupe-600";
+      
+      const weekRibbon = document.getElementById('weekRibbon');
+      weekRibbon.classList.toggle('hidden', view !== 'week');
+
       renderSchedule();
     }
 
     function navigateSchedule(offset) {
       const input = document.getElementById('scheduleDate');
-      if (!input.value) input.value = fmtDate(new Date());
-      input.value = addDays(input.value, state.scheduleView === 'day' ? offset : offset * 7);
+      const d = new Date(input.value);
+      if (state.scheduleView === 'day') {
+        d.setDate(d.getDate() + offset);
+      } else {
+        d.setDate(d.getDate() + (offset * 7));
+      }
+      input.value = d.toISOString().split('T')[0];
       renderSchedule();
     }
 
-    function renderSchedule() {
-      const dateStr = document.getElementById('scheduleDate').value;
-      const container = document.getElementById('dayBookingsList');
-      if (!dateStr) { container.innerHTML = ''; return; }
-      if (state.scheduleView === 'week') renderWeekView(mondayOf(dateStr), container);
-      else renderDayView(dateStr, container);
-    }
-
-    function bookingCard(b, compact) {
-      const meta = SERVICE_META[b.serviceType] || { label: b.serviceType, badge: '' };
-      const priced = calculateBookingDogPrices(b);
-      const dogNames = priced.map(p => p.client.dogName).join(', ') || '(client removed)';
-      const total = bookingTotal(b);
-      if (compact) {
-        return `
-          <div onclick="openDetailsModal('${esc(b.id)}')" class="bg-white px-3 py-2.5 rounded-xl border border-beige-200 cursor-pointer flex items-center justify-between gap-2 active:bg-beige-50">
-            <div class="flex items-center gap-2 min-w-0">
-              <span class="text-xs font-bold text-taupe-900 whitespace-nowrap">${esc(b.startTime)}</span>
-              <div class="h-4 w-px bg-beige-300"></div>
-              <div class="min-w-0">
-                <p class="text-xs font-bold text-taupe-900 truncate">🐕 ${esc(dogNames)}</p>
-                <p class="text-[10px] text-taupe-600 truncate">${esc(meta.label)}</p>
-              </div>
-            </div>
-            <span class="text-xs font-bold text-blush-700 shrink-0">${money(total)}</span>
-          </div>`;
-      }
-      return `
-        <div onclick="openDetailsModal('${esc(b.id)}')" class="bg-white p-3.5 rounded-2xl shadow-sm border border-beige-200 active:scale-[0.99] transition-all cursor-pointer space-y-2">
-          <div class="flex justify-between items-start gap-2">
-            <div>
-              <span class="font-extrabold text-taupe-900 text-base">${esc(b.startTime)} – ${esc(b.endTime)}</span>
-              <span class="ml-1.5 text-[11px] px-2.5 py-0.5 rounded-full font-bold ${meta.badge}">${esc(meta.label)}${b.seriesId ? ' 🔁' : ''}</span>
-            </div>
-            <span class="text-sm font-bold text-blush-700">${money(total)}</span>
-          </div>
-          <div class="flex items-center justify-between text-xs text-taupe-800 gap-2">
-            <span class="font-bold">🐕 ${esc(dogNames)}</span>
-            <span class="text-taupe-600 truncate">${priced[0] ? esc(priced[0].client.ownerName) : ''}</span>
-          </div>
-          ${b.notes ? `<p class="text-xs text-taupe-600 italic">📝 ${esc(b.notes)}</p>` : ''}
-        </div>`;
-    }
-
-    function renderDayView(dateStr, container) {
-      const items = state.bookings.filter(b => b.date === dateStr).sort((a, b) => a.startTime.localeCompare(b.startTime));
-      if (items.length === 0) {
-        container.innerHTML = `<div class="text-center py-10 text-taupe-600 text-sm bg-white rounded-2xl border border-dashed border-beige-300">Nothing booked for ${esc(prettyDate(dateStr))}.</div>`;
-        return;
-      }
-      let html = '';
-      items.forEach((b, i) => {
-        if (i > 0) {
-          const gap = toMinutes(b.startTime) - toMinutes(items[i - 1].endTime);
-          if (gap > 0) {
-            html += `<div class="flex items-center justify-center py-1 text-[11px] text-taupe-600 bg-beige-100/50 rounded-xl border border-dashed border-beige-200">🚗 Gap / travel: <strong class="ml-1">${gap} mins</strong></div>`;
-          }
-        }
-        html += bookingCard(b, false);
-      });
-      const dayTotal = items.reduce((s, b) => s + bookingTotal(b), 0);
-      html += `<div class="text-right text-xs text-taupe-600 pr-1">Day total: <strong class="text-taupe-900">${money(dayTotal)}</strong></div>`;
-      container.innerHTML = html;
-    }
-
-    function renderWeekView(mondayStr, container) {
-      const today = fmtDate(new Date());
-      let html = '';
-      for (let i = 0; i < 7; i++) {
-        const dStr = addDays(mondayStr, i);
-        const items = state.bookings.filter(b => b.date === dStr).sort((a, b) => a.startTime.localeCompare(b.startTime));
-        html += `
-          <div class="space-y-1.5">
-            <div class="flex justify-between items-center px-1">
-              <span class="text-xs font-extrabold ${dStr === today ? 'text-blush-700' : 'text-taupe-900'}">${esc(prettyDate(dStr))}${dStr === today ? ' ⭐' : ''}</span>
-              <button onclick="openBookingModal('${dStr}')" class="text-[11px] font-bold text-blush-600 px-2 py-0.5">＋ Add</button>
-            </div>
-            ${items.length === 0
-              ? '<div class="text-[11px] text-center py-2 text-taupe-600 bg-beige-100/40 rounded-xl border border-dashed border-beige-200">Free</div>'
-              : items.map(b => bookingCard(b, true)).join('')}
-          </div>`;
-      }
-      container.innerHTML = html;
-    }
-
-    // ---------- BOOKING MODAL ----------
-    let bookingSel = []; // selected dog ids
-
-    function openBookingModal(dateStr) {
-      if (state.clients.length === 0) {
-        alert('Please add at least one dog/client in the Clients tab first!');
-        switchTab('clients');
-        return;
-      }
-      bookingSel = [];
-      document.getElementById('bookingDate').value = dateStr || document.getElementById('scheduleDate').value || fmtDate(new Date());
-      document.getElementById('bookingServiceType').value = 'solo30';
-      document.getElementById('dogSearch').value = '';
-      document.getElementById('bookingNotes').value = '';
-      document.getElementById('bookingIsRecurring').checked = false;
-      document.getElementById('recurringOptionsBox').classList.add('hidden');
-      refreshTimeOptions('09:00');
-      renderDogPicker();
-      showModal('bookingModal');
-    }
-    function closeBookingModal() { hideModal('bookingModal'); }
-
-    // Build the 15-min start-time list; slots that clash with an existing booking are disabled
-    function refreshTimeOptions(preferred) {
-      const sel = document.getElementById('bookingStartTime');
-      const date = document.getElementById('bookingDate').value;
-      const service = document.getElementById('bookingServiceType').value;
-      const wanted = preferred || sel.value || '09:00';
-      sel.innerHTML = '';
-      let firstFree = null;
-      let wantedFree = false;
-      for (let m = DAY_START; m <= DAY_END; m += 15) {
-        const t = fromMinutes(m);
-        const clash = date ? findConflict(date, t, service) : null;
-        const opt = document.createElement('option');
-        opt.value = t;
-        opt.textContent = clash ? t + '  — booked' : t;
-        opt.disabled = !!clash;
-        sel.appendChild(opt);
-        if (!clash) {
-          if (!firstFree) firstFree = t;
-          if (t === wanted) wantedFree = true;
-        }
-      }
-      const hint = document.getElementById('timeHint');
-      if (!firstFree) {
-        hint.textContent = 'No free slots for this service on this day.';
-        hint.className = 'text-[11px] text-rose-700 font-semibold mt-1';
-      } else {
-        sel.value = wantedFree ? wanted : firstFree;
-        hint.textContent = 'Times already booked out (including overlaps with this service length) are greyed out.';
-        hint.className = 'text-[11px] text-taupe-600 mt-1';
-      }
-    }
-
-    function onServiceChange() {
-      const service = document.getElementById('bookingServiceType').value;
-      // Solo / pop-in: one household only. If several owners are selected, keep the first owner's dogs.
-      if (!SERVICE_META[service].group && bookingSel.length > 0) {
-        const firstClient = state.clients.find(c => c.id === bookingSel[0]);
-        if (firstClient) {
-          const key = getOwnerKey(firstClient);
-          const kept = bookingSel.filter(id => { const c = state.clients.find(x => x.id === id); return c && getOwnerKey(c) === key; });
-          if (kept.length !== bookingSel.length) bookingSel = kept;
-        }
-      }
-      refreshTimeOptions();
-      renderDogPicker();
-    }
-
-    function toggleDog(id) {
-      const service = document.getElementById('bookingServiceType').value;
-      const client = state.clients.find(c => c.id === id);
-      if (!client) return;
-      if (bookingSel.includes(id)) {
-        bookingSel = bookingSel.filter(x => x !== id);
-      } else {
-        if (!SERVICE_META[service].group && bookingSel.length > 0) {
-          const firstClient = state.clients.find(c => c.id === bookingSel[0]);
-          if (firstClient && getOwnerKey(firstClient) !== getOwnerKey(client)) return; // different household
-        }
-        bookingSel.push(id);
-      }
-      renderDogPicker();
-    }
-
-    function renderDogPicker() {
-      const service = document.getElementById('bookingServiceType').value;
-      const isGroup = SERVICE_META[service].group;
-      const q = document.getElementById('dogSearch').value.trim().toLowerCase();
-      const firstClient = bookingSel.length ? state.clients.find(c => c.id === bookingSel[0]) : null;
-      const lockedOwner = (!isGroup && firstClient) ? getOwnerKey(firstClient) : null;
-
-      document.getElementById('dogRuleHint').textContent = isGroup ? 'Group walk: pick any dogs' : 'Same household only';
-
-      // chips of selected dogs
-      document.getElementById('selectedDogChips').innerHTML = bookingSel.map(id => {
-        const c = state.clients.find(x => x.id === id);
-        if (!c) return '';
-        return `<button type="button" onclick="toggleDog('${esc(id)}')" class="bg-blush-100 border border-blush-200 text-blush-700 text-xs font-bold px-2.5 py-1 rounded-full">🐕 ${esc(c.dogName)} ✕</button>`;
-      }).join('');
-
-      const list = [...state.clients]
-        .filter(c => !q || (c.dogName || '').toLowerCase().includes(q) || (c.ownerName || '').toLowerCase().includes(q))
-        .sort((a, b) => (a.ownerName || '').localeCompare(b.ownerName || '') || (a.dogName || '').localeCompare(b.dogName || ''));
-
-      const box = document.getElementById('bookingDogsChecklist');
-      if (list.length === 0) {
-        box.innerHTML = '<div class="p-3 text-xs text-taupe-600 text-center">No dogs match your search.</div>';
-      } else {
-        box.innerHTML = list.map(c => {
-          const selected = bookingSel.includes(c.id);
-          const blocked = lockedOwner && getOwnerKey(c) !== lockedOwner && !selected;
-          return `
-            <button type="button" onclick="toggleDog('${esc(c.id)}')" ${blocked ? 'disabled' : ''}
-              class="w-full flex items-center justify-between gap-2 px-3 py-2.5 text-left ${selected ? 'bg-blush-50' : 'bg-white'} ${blocked ? 'opacity-40' : 'active:bg-beige-50'}">
-              <span class="flex items-center gap-2 min-w-0">
-                <span class="w-5 h-5 shrink-0 rounded-md border ${selected ? 'bg-blush-500 border-blush-500 text-white' : 'border-beige-300 bg-white'} flex items-center justify-center text-xs font-bold">${selected ? '✓' : ''}</span>
-                <span class="font-semibold text-sm text-taupe-900 truncate">${esc(c.dogName)}</span>
-              </span>
-              <span class="text-xs text-taupe-600 truncate">${esc(c.ownerName)}</span>
-            </button>`;
-        }).join('');
-      }
-
-      const preview = document.getElementById('bookingPricePreview');
-      if (bookingSel.length) {
-        const total = calculateBookingDogPrices({ serviceType: service, dogIds: bookingSel }).reduce((s, r) => s + r.finalPrice, 0);
-        preview.textContent = bookingSel.length + ' dog' + (bookingSel.length > 1 ? 's' : '') + ' · ' + money(total);
-      } else {
-        preview.textContent = '';
-      }
+    function selectRibbonDay(dateStr) {
+      document.getElementById('scheduleDate').value = dateStr;
+      renderSchedule();
     }
 
     function toggleRecurringOptions() {
       const isRec = document.getElementById('bookingIsRecurring').checked;
       document.getElementById('recurringOptionsBox').classList.toggle('hidden', !isRec);
       if (isRec) {
-        const d = document.getElementById('bookingDate').value;
-        const currentDay = d ? parseDate(d).getDay() : new Date().getDay();
-        document.querySelectorAll('.rec-day-cb').forEach(cb => { cb.checked = Number(cb.value) === currentDay; styleDayPill(cb); });
+        const currentDay = new Date(document.getElementById('scheduleDate').value).getDay();
+        document.querySelectorAll('.rec-day-cb').forEach(cb => {
+          cb.checked = Number(cb.value) === currentDay;
+          styleDayPill(cb);
+        });
       }
     }
+
     function styleDayPill(cb) {
-      cb.parentElement.className = cb.checked
-        ? 'bg-blush-500 text-white py-1.5 rounded-lg cursor-pointer'
-        : 'bg-beige-100 text-taupe-800 py-1.5 rounded-lg cursor-pointer';
+      const label = cb.parentElement;
+      if (cb.checked) {
+        label.className = 'bg-blush-500 text-white py-1.5 rounded-lg cursor-pointer';
+      } else {
+        label.className = 'bg-beige-100 text-taupe-800 py-1.5 rounded-lg cursor-pointer';
+      }
+    }
+
+    function openBookingModal() {
+      if (state.clients.length === 0) {
+        alert('Please add at least one dog/client in the Clients tab first!');
+        switchTab('clients');
+        return;
+      }
+      const sortedClients = [...state.clients].sort((a, b) => a.ownerName.localeCompare(b.ownerName));
+      const list = document.getElementById('bookingDogsChecklist');
+      list.innerHTML = sortedClients.map(c => `
+        <label class="flex items-center justify-between text-sm py-1 px-1.5 rounded hover:bg-beige-50">
+          <div class="flex items-center gap-2">
+            <input type="checkbox" value="${c.id}" class="booking-dog-cb w-4 h-4 accent-blush-500" />
+            <span class="font-semibold text-taupe-900">🐕 ${c.dogName}</span>
+          </div>
+          <span class="text-xs text-taupe-600">Owner: ${c.ownerName}</span>
+        </label>
+      `).join('');
+      document.getElementById('bookingNotes').value = '';
+      document.getElementById('bookingIsRecurring').checked = false;
+      document.getElementById('recurringOptionsBox').classList.add('hidden');
+      document.getElementById('bookingModal').classList.remove('hidden');
+    }
+
+    function closeBookingModal() {
+      document.getElementById('bookingModal').classList.add('hidden');
     }
 
     function saveBooking() {
-      const baseDate = document.getElementById('bookingDate').value;
+      const baseDateStr = document.getElementById('scheduleDate').value;
       const startTime = document.getElementById('bookingStartTime').value;
       const serviceType = document.getElementById('bookingServiceType').value;
       const notes = document.getElementById('bookingNotes').value.trim();
+      const dogIds = Array.from(document.querySelectorAll('.booking-dog-cb:checked')).map(cb => cb.value);
       const isRecurring = document.getElementById('bookingIsRecurring').checked;
 
-      if (!baseDate) return alert('Please pick a date.');
-      if (!startTime) return alert('No free start time available - pick another day.');
-      if (bookingSel.length === 0) return alert('Select at least one dog.');
+      if (dogIds.length === 0) return alert('Select at least one dog.');
 
-      let dates = [];
-      if (isRecurring) {
-        const days = Array.from(document.querySelectorAll('.rec-day-cb:checked')).map(cb => Number(cb.value));
-        if (days.length === 0) return alert('Please select at least one day of the week.');
-        const weeks = Number(document.getElementById('bookingRecurringWeeks').value) || 4;
-        for (let i = 0; i < weeks * 7; i++) {
-          const ds = addDays(baseDate, i);
-          if (days.includes(parseDate(ds).getDay())) dates.push(ds);
-        }
+      const endTime = addMinutes(startTime, SERVICE_META[serviceType].duration);
+      const seriesId = isRecurring ? 'rec_' + Date.now() : null;
+
+      if (!isRecurring) {
+        state.bookings.push({
+          id: 'bk_' + Date.now(),
+          seriesId: null,
+          date: baseDateStr,
+          startTime, endTime, serviceType, dogIds, notes
+        });
       } else {
-        dates = [baseDate];
-      }
+        const selectedDays = Array.from(document.querySelectorAll('.rec-day-cb:checked')).map(cb => Number(cb.value));
+        const weeks = Number(document.getElementById('bookingRecurringWeeks').value) || 4;
+        if (selectedDays.length === 0) return alert('Please select at least one day of the week for recurring slots.');
 
-      const free = dates.filter(d => !findConflict(d, startTime, serviceType));
-      const clashes = dates.filter(d => !!findConflict(d, startTime, serviceType));
-      if (free.length === 0) return alert('That time is already booked on every selected date.');
-      if (clashes.length > 0) {
-        const list = clashes.slice(0, 6).map(prettyDate).join(', ') + (clashes.length > 6 ? '…' : '');
-        if (!confirm(clashes.length + ' date(s) clash with existing bookings and will be skipped:\n' + list + '\n\nBook the other ' + free.length + '?')) return;
+        const startDate = new Date(baseDateStr);
+        const totalDays = weeks * 7;
+        for (let i = 0; i < totalDays; i++) {
+          const d = new Date(startDate);
+          d.setDate(startDate.getDate() + i);
+          if (selectedDays.includes(d.getDay())) {
+            const dStr = d.toISOString().split('T')[0];
+            state.bookings.push({
+              id: 'bk_' + Date.now() + '_' + i,
+              seriesId,
+              date: dStr,
+              startTime, endTime, serviceType, dogIds, notes
+            });
+          }
+        }
       }
-
-      const seriesId = isRecurring ? 'ser_' + uid() : null;
-      const endTime = addMinutes(startTime, durationOf(serviceType));
-      free.forEach(date => {
-        state.bookings.push({ id: uid(), seriesId, date, startTime, endTime, serviceType, dogIds: [...bookingSel], notes });
-      });
 
       persist();
       closeBookingModal();
-      document.getElementById('scheduleDate').value = baseDate;
       renderSchedule();
-      renderBilling();
     }
 
     function copyPreviousWeekSchedule() {
-      const dateStr = document.getElementById('scheduleDate').value;
-      if (!dateStr) return;
-      const thisMon = mondayOf(dateStr);
-      const prevMon = addDays(thisMon, -7);
-      const prevEnd = addDays(prevMon, 6);
-      const prev = state.bookings.filter(b => b.date >= prevMon && b.date <= prevEnd);
-      if (prev.length === 0) return alert('No bookings found in the previous week to copy.');
-      if (!confirm('Copy ' + prev.length + ' booking(s) from last week into the week of ' + prettyDate(thisMon) + '? (Clashes are skipped)')) return;
+      const currDateStr = document.getElementById('scheduleDate').value;
+      const curr = new Date(currDateStr);
+      const day = curr.getDay(), diff = curr.getDate() - day + (day === 0 ? -6 : 1);
+      const thisMonday = new Date(curr.setDate(diff));
+      const lastMonday = new Date(thisMonday);
+      lastMonday.setDate(thisMonday.getDate() - 7);
+      const lastSunday = new Date(lastMonday);
+      lastSunday.setDate(lastMonday.getDate() + 6);
 
-      let added = 0, skipped = 0;
-      prev.forEach(b => {
-        const newDate = addDays(b.date, 7);
-        if (findConflict(newDate, b.startTime, b.serviceType)) { skipped++; return; }
-        state.bookings.push({ id: uid(), seriesId: null, date: newDate, startTime: b.startTime, endTime: b.endTime, serviceType: b.serviceType, dogIds: [...b.dogIds], notes: b.notes || '' });
-        added++;
+      const startStr = lastMonday.toISOString().split('T')[0];
+      const endStr = lastSunday.toISOString().split('T')[0];
+
+      const prevBookings = state.bookings.filter(b => b.date >= startStr && b.date <= endStr);
+      if (prevBookings.length === 0) {
+        return alert('No bookings found in the previous week to copy.');
+      }
+      if (!confirm(`Copy ${prevBookings.length} bookings from last week into this week?`)) return;
+
+      prevBookings.forEach((b, i) => {
+        const d = new Date(b.date);
+        d.setDate(d.getDate() + 7);
+        const newDateStr = d.toISOString().split('T')[0];
+        state.bookings.push({
+          ...b,
+          id: 'bk_copy_' + Date.now() + '_' + i,
+          date: newDateStr
+        });
       });
       persist();
       renderSchedule();
-      renderBilling();
-      alert(added + ' copied' + (skipped ? ', ' + skipped + ' skipped (already booked)' : '') + '.');
+      alert('Last week copied forward successfully!');
     }
 
-    // ---------- DETAILS MODAL ----------
+    function renderDayView(dateStr, container) {
+      const dayItems = state.bookings
+        .filter(b => b.date === dateStr)
+        .sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+      if (dayItems.length === 0) {
+        container.innerHTML = `<div class="text-center py-10 text-taupe-600 text-sm bg-white rounded-2xl border border-dashed border-beige-300">No walks or pop-ins booked for this day.</div>`;
+        return;
+      }
+
+      let html = '<div class="space-y-3">';
+      dayItems.forEach((b, index) => {
+        const meta = SERVICE_META[b.serviceType];
+        const pricedDogs = calculateBookingDogPrices(b);
+        const dogNames = pricedDogs.map(pd => pd.client.dogName).join(', ');
+        const totalBookingCost = pricedDogs.reduce((sum, d) => sum + d.finalPrice, 0);
+
+        let gapHtml = '';
+        if (index > 0) {
+          const prev = dayItems[index - 1];
+          const gapMin = getMinutesBetween(prev.endTime, b.startTime);
+          if (gapMin > 0) {
+            gapHtml = `
+              <div class="flex items-center justify-center gap-1.5 py-1 text-[11px] text-taupe-600 bg-beige-100/50 rounded-xl border border-dashed border-beige-200">
+                <span>🚗 Travel / Gap: <strong>${gapMin} mins</strong></span>
+              </div>
+            `;
+          }
+        }
+
+        html += gapHtml + `
+          <div onclick="openDetailsModal('${b.id}')" class="bg-white p-3.5 rounded-2xl shadow-xs border border-beige-200 hover:border-blush-300 active:scale-[0.99] transition-all cursor-pointer space-y-2">
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="font-extrabold text-taupe-900 text-base">${b.startTime} – ${b.endTime}</span>
+                <span class="ml-1.5 text-[11px] px-2.5 py-0.5 rounded-full font-bold ${meta.badge}">${meta.label}</span>
+              </div>
+              <span class="text-sm font-bold text-blush-700">£${totalBookingCost.toFixed(2)}</span>
+            </div>
+            <div class="flex items-center justify-between text-xs text-taupe-800">
+              <span class="font-bold">🐕 ${dogNames}</span>
+              <span class="text-taupe-600">Owner: ${pricedDogs[0]?.client.ownerName || ''}</span>
+            </div>
+            ${b.notes ? `<p class="text-xs text-taupe-600 italic line-clamp-1">📝 ${b.notes}</p>` : ''}
+          </div>
+        `;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    function renderWeekView(startOfWeekDate, container) {
+      let html = '<div class="space-y-3.5">';
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(startOfWeekDate);
+        d.setDate(startOfWeekDate.getDate() + i);
+        const dStr = d.toISOString().split('T')[0];
+        
+        const dayBookings = state.bookings
+          .filter(b => b.date === dStr)
+          .sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+        const dayNameLabel = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+        const isToday = dStr === new Date().toISOString().split('T')[0];
+
+        html += `
+          <div class="space-y-1.5">
+            <div class="flex justify-between items-center px-1">
+              <span class="text-xs font-extrabold ${isToday ? 'text-blush-700 font-black' : 'text-taupe-900'}">${dayNameLabel} ${isToday ? '⭐ (Today)' : ''}</span>
+              <span class="text-[10px] text-taupe-600">${dayBookings.length} Bookings</span>
+            </div>
+            <div class="space-y-1.5">
+        `;
+
+        if (dayBookings.length === 0) {
+          html += `<div class="text-[11px] text-center py-2.5 text-taupe-600 bg-beige-100/40 rounded-xl border border-dashed border-beige-200">No scheduled walks</div>`;
+        } else {
+          dayBookings.forEach(b => {
+            const pricedDogs = calculateBookingDogPrices(b);
+            const dogNames = pricedDogs.map(pd => pd.client.dogName).join(', ');
+            const totalBookingCost = pricedDogs.reduce((sum, d) => sum + d.finalPrice, 0);
+
+            html += `
+              <div onclick="openDetailsModal('${b.id}')" class="bg-white px-3 py-2.5 rounded-xl border border-beige-200 hover:border-blush-300 transition-colors cursor-pointer flex items-center justify-between gap-2 shadow-2xs">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="text-xs font-bold text-taupe-900 whitespace-nowrap">${b.startTime}</span>
+                  <div class="h-4 w-[1px] bg-beige-300"></div>
+                  <div class="min-w-0">
+                    <p class="text-xs font-bold text-taupe-900 truncate">🐕 ${dogNames}</p>
+                    <p class="text-[10px] text-taupe-600 truncate">${SERVICE_META[b.serviceType].label}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                  <span class="text-xs font-bold text-blush-700">£${totalBookingCost.toFixed(2)}</span>
+                  <span class="text-[10px] text-taupe-600">▶</span>
+                </div>
+              </div>
+            `;
+          });
+        }
+
+        html += `
+            </div>
+          </div>
+        `;
+      }
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    function getMinutesBetween(time1, time2) {
+      const [h1, m1] = time1.split(':').map(Number);
+      const [h2, m2] = time2.split(':').map(Number);
+      return (h2 * 60 + m2) - (h1 * 60 + m1);
+    }
+
+    // --- DETAIL POPUP ENGINE ---
     function openDetailsModal(bookingId) {
       const b = state.bookings.find(x => x.id === bookingId);
       if (!b) return;
-      const meta = SERVICE_META[b.serviceType] || { label: b.serviceType, badge: '' };
-      const priced = calculateBookingDogPrices(b);
 
-      document.getElementById('detTime').textContent = b.startTime + ' – ' + b.endTime;
-      document.getElementById('detDate').textContent = prettyDate(b.date);
-      const badge = document.getElementById('detServiceBadge');
-      badge.textContent = meta.label;
-      badge.className = 'inline-block text-xs font-bold px-2.5 py-1 rounded-full mt-1.5 ' + meta.badge;
+      const meta = SERVICE_META[b.serviceType];
+      const pricedDogs = calculateBookingDogPrices(b);
+
+      document.getElementById('detTime').textContent = `${b.startTime} – ${b.endTime}`;
+      document.getElementById('detServiceBadge').textContent = meta.label;
+      document.getElementById('detServiceBadge').className = `inline-block text-xs font-bold px-2.5 py-1 rounded-full mt-1.5 ${meta.badge}`;
 
       if (b.notes) {
         document.getElementById('detNotesBox').classList.remove('hidden');
@@ -811,328 +911,388 @@
         document.getElementById('detNotesBox').classList.add('hidden');
       }
 
-      document.getElementById('detDogsSection').innerHTML = priced.map(({ client: d, isSecondDog, finalPrice, discountPct }) => `
-        <div class="bg-white p-3 border border-beige-200 rounded-2xl space-y-2">
-          <div class="flex justify-between items-center">
-            <div>
-              <h4 class="font-extrabold text-sm text-taupe-900">🐕 ${esc(d.dogName)}</h4>
-              <p class="text-[11px] text-taupe-600">Owner: <strong class="text-taupe-900">${esc(d.ownerName)}</strong></p>
+      const dogsContainer = document.getElementById('detDogsSection');
+      dogsContainer.innerHTML = pricedDogs.map(({ client: d, isSecondDog, finalPrice }) => {
+        return `
+          <div class="bg-white p-3 border border-beige-200 rounded-2xl shadow-2xs space-y-2">
+            <div class="flex justify-between items-center">
+              <div>
+                <h4 class="font-extrabold text-sm text-taupe-900">🐕 ${d.dogName}</h4>
+                <p class="text-[11px] text-taupe-600">Owner: <strong class="text-taupe-900">${d.ownerName}</strong></p>
+              </div>
+              <div class="text-right">
+                <span class="text-xs font-bold text-blush-700 block">£${finalPrice.toFixed(2)}</span>
+                ${isSecondDog ? `<span class="text-[9px] bg-blush-100 text-blush-700 px-1.5 py-0.2 rounded font-bold uppercase">50% off</span>` : ''}
+              </div>
             </div>
-            <div class="text-right">
-              <span class="text-xs font-bold text-blush-700 block">${money(finalPrice)}</span>
-              ${isSecondDog ? `<span class="text-[9px] bg-blush-100 text-blush-700 px-1.5 rounded font-bold uppercase">${esc(discountPct)}% off</span>` : ''}
-            </div>
-          </div>
-          <p class="text-xs text-taupe-600">📍 ${esc(d.ownerAddress)}</p>
-          ${d.accessCode ? `<p class="text-xs text-amber-800 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg">🔑 Access: <strong>${esc(d.accessCode)}</strong></p>` : ''}
-          ${d.petHealth ? `<div class="bg-blush-50 border border-blush-100 rounded-lg p-2 text-[11px] text-blush-800 whitespace-pre-line"><strong>🩺 Health:</strong> ${esc(d.petHealth)}</div>` : ''}
-          ${(d.vetClinic || d.vetPhone) ? `
-            <div class="bg-beige-100/60 border border-beige-200 rounded-lg p-2 text-[11px] text-taupe-800 space-y-0.5">
-              <p>🏥 <strong>Vet:</strong> ${esc(d.vetClinic || 'Not specified')}</p>
-              ${d.vetPhone ? `<p>📞 <a href="tel:${esc(d.vetPhone)}" class="text-blush-600 font-bold underline">${esc(d.vetPhone)}</a></p>` : ''}
-            </div>` : ''}
-          <div class="grid grid-cols-3 gap-1.5 text-[11px] font-bold text-center">
-            <a href="tel:${esc(d.ownerPhone)}" class="bg-beige-100 rounded-lg py-1.5 text-taupe-800">📞 Call</a>
-            <a href="sms:${esc(d.ownerPhone)}" class="bg-beige-100 rounded-lg py-1.5 text-taupe-800">💬 Text</a>
-            <a href="https://maps.apple.com/?q=${encodeURIComponent(d.ownerAddress)}" target="_blank" rel="noopener" class="bg-beige-100 rounded-lg py-1.5 text-taupe-800">🗺️ Map</a>
-          </div>
-        </div>`).join('') || '<p class="text-xs text-taupe-600">The client for this booking has been removed.</p>';
 
-      document.getElementById('detDeleteBtn').onclick = () => {
-        if (!confirm('Delete this booking?')) return;
-        state.bookings = state.bookings.filter(x => x.id !== b.id);
-        persist(); closeDetailsModal(); renderSchedule(); renderBilling();
+            <p class="text-xs text-taupe-600 flex items-start gap-1.5">
+              <span>📍</span> <span>${d.ownerAddress}</span>
+            </p>
+            ${d.accessCode ? `
+              <p class="text-xs text-amber-800 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg flex items-center gap-1.5">
+                <span>🔑 Access:</span> <strong>${d.accessCode}</strong>
+              </p>
+            ` : ''}
+
+            ${d.petHealth ? `
+              <div class="bg-blush-50 border border-blush-100 rounded-lg p-2 text-[11px] text-blush-800">
+                <strong>🩺 Health Notes:</strong> ${d.petHealth}
+              </div>
+            ` : ''}
+
+            ${(d.vetClinic || d.vetPhone) ? `
+              <div class="bg-beige-100/60 border border-beige-200 rounded-lg p-2 text-[11px] text-taupe-800 space-y-0.5">
+                <p>🏥 <strong>Vet Clinic:</strong> ${d.vetClinic || 'Not Specified'}</p>
+                ${d.vetPhone ? `<p>📞 <strong>Vet Phone:</strong> <a href="tel:${d.vetPhone}" class="text-blush-600 font-bold underline">${d.vetPhone}</a></p>` : ''}
+              </div>
+            ` : ''}
+
+            <div class="grid grid-cols-3 gap-1.5 pt-1 text-[11px] font-bold text-center">
+              <a href="tel:${d.ownerPhone}" class="bg-beige-100 rounded-lg py-1.5 text-taupe-800">📞 Call</a>
+              <a href="sms:${d.ownerPhone}" class="bg-beige-100 rounded-lg py-1.5 text-taupe-800">💬 Text</a>
+              <a href="http://maps.apple.com/?q=${encodeURIComponent(d.ownerAddress)}" target="_blank" class="bg-beige-100 rounded-lg py-1.5 text-taupe-800">🗺️ Map</a>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const delBtn = document.getElementById('detDeleteBtn');
+      const delSeriesBtn = document.getElementById('detDeleteSeriesBtn');
+
+      delBtn.onclick = () => {
+        if (confirm('Cancel / delete this walk booking?')) {
+          state.bookings = state.bookings.filter(x => x.id !== b.id);
+          persist();
+          closeDetailsModal();
+          renderSchedule();
+        }
       };
-      const seriesBtn = document.getElementById('detDeleteSeriesBtn');
+
       if (b.seriesId) {
-        seriesBtn.classList.remove('hidden');
-        seriesBtn.onclick = () => {
-          if (!confirm('Delete this booking and all later ones in the series?')) return;
-          state.bookings = state.bookings.filter(x => !(x.seriesId === b.seriesId && x.date >= b.date));
-          persist(); closeDetailsModal(); renderSchedule(); renderBilling();
+        delSeriesBtn.classList.remove('hidden');
+        delSeriesBtn.onclick = () => {
+          if (confirm('Delete all future sessions in this recurring series?')) {
+            const currentDate = document.getElementById('scheduleDate').value;
+            state.bookings = state.bookings.filter(x => !(x.seriesId === b.seriesId && x.date >= currentDate));
+            persist();
+            closeDetailsModal();
+            renderSchedule();
+          }
         };
       } else {
-        seriesBtn.classList.add('hidden');
+        delSeriesBtn.classList.add('hidden');
       }
-      showModal('detailsModal');
-    }
-    function closeDetailsModal() { hideModal('detailsModal'); }
 
-    // ---------- CLIENTS ----------
-    function getGroupedClients() {
-      const grouped = {};
-      state.clients.forEach(c => {
-        const key = getOwnerKey(c);
-        if (!grouped[key]) grouped[key] = { key, ownerName: c.ownerName, ownerPhone: c.ownerPhone, ownerEmail: c.ownerEmail, ownerAddress: c.ownerAddress, accessCode: c.accessCode, dogs: [] };
-        grouped[key].dogs.push(c);
-      });
-      return grouped;
+      document.getElementById('detailsModal').classList.remove('hidden');
     }
 
-    function toggleOwnerCard(el) {
-      const key = decodeURIComponent(el.dataset.owner);
-      state.expandedOwners[key] = !state.expandedOwners[key];
-      persist(); renderClients();
-    }
-    function toggleAllClients(expand) {
-      Object.keys(getGroupedClients()).forEach(k => { state.expandedOwners[k] = expand; });
-      persist(); renderClients();
+    function closeDetailsModal() {
+      document.getElementById('detailsModal').classList.add('hidden');
     }
 
     function renderClients() {
       const container = document.getElementById('clientsGroupedList');
       if (state.clients.length === 0) {
-        container.innerHTML = '<div class="text-center py-10 text-taupe-600 text-sm bg-white rounded-2xl border border-dashed border-beige-300">No dogs added yet. Tap above to add your first client!</div>';
+        container.innerHTML = `<div class="text-center py-10 text-taupe-600 text-sm bg-white rounded-2xl border border-dashed border-beige-300">No dogs added yet. Tap above to add your first client!</div>`;
         return;
       }
-      const owners = Object.values(getGroupedClients()).sort((a, b) => (a.ownerName || '').localeCompare(b.ownerName || ''));
-      container.innerHTML = owners.map(info => {
-        const open = state.expandedOwners[info.key] === true;
+
+      const grouped = getGroupedClients();
+      let html = '';
+
+      Object.entries(grouped).forEach(([ownerKey, info]) => {
+        const isExpanded = state.expandedOwners[ownerKey] !== false;
         const dogsNames = info.dogs.map(d => d.dogName).join(' & ');
-        return `
-          <div class="bg-white border border-beige-200 rounded-2xl shadow-sm overflow-hidden">
-            <div data-owner="${encodeURIComponent(info.key)}" onclick="toggleOwnerCard(this)" class="bg-beige-100/50 p-4 flex justify-between items-center cursor-pointer active:bg-beige-100">
+
+        html += `
+          <div class="bg-white border border-beige-200 rounded-2xl shadow-xs overflow-hidden">
+            <div onclick="toggleOwnerCard('${ownerKey}')" class="bg-beige-100/50 p-4 flex justify-between items-center cursor-pointer hover:bg-beige-100 transition-colors">
               <div class="min-w-0">
-                <h3 class="font-extrabold text-base text-taupe-900 truncate">👤 ${esc(info.ownerName)}</h3>
-                <p class="text-xs text-taupe-600 truncate">Dogs: <span class="font-bold text-blush-700">${esc(dogsNames)}</span></p>
+                <h3 class="font-extrabold text-base text-taupe-900 truncate">👤 ${info.ownerName}</h3>
+                <p class="text-xs text-taupe-600 truncate">Dogs: <span class="font-bold text-blush-700">${dogsNames}</span></p>
               </div>
-              <div class="flex items-center gap-2 shrink-0">
+              <div class="flex items-center gap-2">
                 <span class="text-xs bg-blush-100 text-blush-700 px-2.5 py-0.5 rounded-full font-bold">${info.dogs.length} ${info.dogs.length > 1 ? 'Dogs' : 'Dog'}</span>
-                <span class="text-taupe-600 text-xs font-bold">${open ? '▲' : '▼'}</span>
+                <span class="text-taupe-600 text-xs font-bold transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}">▼</span>
               </div>
             </div>
-            <div class="${open ? 'block' : 'hidden'} p-4 border-t border-beige-100 space-y-3.5">
+
+            <div class="${isExpanded ? 'block' : 'hidden'} p-4 border-t border-beige-100 space-y-3.5">
               <div class="text-xs text-taupe-800 space-y-1.5">
-                <p>📍 <strong>Address:</strong> ${esc(info.ownerAddress)}</p>
-                <p>📧 <strong>Email:</strong> ${esc(info.ownerEmail || 'Not specified')}</p>
-                <p>📞 <strong>Phone:</strong> ${esc(info.ownerPhone)}</p>
-                ${info.accessCode ? `<p class="text-amber-800 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg inline-block">🔑 Access: <strong>${esc(info.accessCode)}</strong></p>` : ''}
+                <p>📍 <strong>Pickup Address:</strong> ${info.ownerAddress}</p>
+                <p>📧 <strong>Email:</strong> ${info.ownerEmail || 'Not Specified'}</p>
+                <p>📞 <strong>Phone:</strong> ${info.ownerPhone}</p>
+                ${info.accessCode ? `<p class="text-amber-800 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg inline-block mt-1">🔑 Access: <strong>${info.accessCode}</strong></p>` : ''}
               </div>
+
               <div class="grid grid-cols-4 gap-1.5 text-xs font-semibold text-center">
-                <a href="tel:${esc(info.ownerPhone)}" class="bg-beige-100 rounded-lg py-1.5 text-taupe-800">📞 Call</a>
-                <a href="sms:${esc(info.ownerPhone)}" class="bg-beige-100 rounded-lg py-1.5 text-taupe-800">💬 Text</a>
-                <a href="https://maps.apple.com/?q=${encodeURIComponent(info.ownerAddress || '')}" target="_blank" rel="noopener" class="bg-beige-100 rounded-lg py-1.5 text-taupe-800">🗺️ Map</a>
-                <button onclick="addDogForOwner('${esc(info.dogs[0].id)}')" class="bg-blush-100 text-blush-700 rounded-lg py-1.5">＋ Dog</button>
+                <a href="tel:${info.ownerPhone}" class="bg-beige-100 rounded-lg py-1.5 text-taupe-800">📞 Call</a>
+                <a href="sms:${info.ownerPhone}" class="bg-beige-100 rounded-lg py-1.5 text-taupe-800">💬 Text</a>
+                <a href="http://maps.apple.com/?q=${encodeURIComponent(info.ownerAddress)}" target="_blank" class="bg-beige-100 rounded-lg py-1.5 text-taupe-800">🗺️ Map</a>
+                <button onclick="addSecondDogForOwner('${info.dogs[0].id}')" class="bg-blush-100 text-blush-700 rounded-lg py-1.5">＋ Dog</button>
               </div>
+
               <div class="space-y-2 pt-2 border-t border-beige-100">
-                <h4 class="text-xs font-extrabold uppercase tracking-wide text-taupe-600">Dogs</h4>
+                <h4 class="text-xs font-extrabold uppercase tracking-wide text-taupe-600">Dogs details:</h4>
                 ${info.dogs.map(dog => `
-                  <div class="bg-beige-50 border border-beige-200 rounded-xl p-3 space-y-1.5">
+                  <div class="bg-beige-50 border border-beige-200 rounded-xl p-3 space-y-1.5 relative">
                     <div class="flex justify-between items-start">
-                      <span class="font-extrabold text-sm text-taupe-900">🐾 ${esc(dog.dogName)}</span>
-                      <button onclick="openClientModal('${esc(dog.id)}')" class="text-xs text-blush-700 font-bold">Edit</button>
+                      <span class="font-extrabold text-sm text-taupe-900">🐾 ${dog.dogName}</span>
+                      <button onclick="openClientModal('${dog.id}')" class="text-xs text-blush-700 font-bold hover:underline">Edit details</button>
                     </div>
-                    ${dog.petHealth ? `<p class="text-[11px] text-blush-800 bg-blush-50/60 border border-blush-100 rounded p-1.5 whitespace-pre-line">🩺 <strong>Health:</strong> ${esc(dog.petHealth)}</p>` : ''}
+
+                    ${dog.petHealth ? `
+                      <p class="text-[11px] text-blush-800 bg-blush-50/50 border border-blush-100 rounded p-1.5">🩺 <strong>Health:</strong> ${dog.petHealth}</p>
+                    ` : ''}
+
                     ${(dog.vetClinic || dog.vetPhone) ? `
                       <div class="text-[11px] text-taupe-800 space-y-0.5 pt-0.5 border-t border-dashed border-beige-200">
-                        <p>🏥 <strong>Vet:</strong> ${esc(dog.vetClinic || 'Not specified')}</p>
-                        ${dog.vetPhone ? `<p>📞 <a href="tel:${esc(dog.vetPhone)}" class="underline text-blush-600">${esc(dog.vetPhone)}</a></p>` : ''}
-                      </div>` : ''}
-                  </div>`).join('')}
+                        <p>🏥 <strong>Vet Clinic:</strong> ${dog.vetClinic || 'Not Specified'}</p>
+                        ${dog.vetPhone ? `<p>📞 <strong>Vet Phone:</strong> <a href="tel:${dog.vetPhone}" class="underline text-blush-600">${dog.vetPhone}</a></p>` : ''}
+                      </div>
+                    ` : ''}
+                  </div>
+                `).join('')}
               </div>
             </div>
-          </div>`;
-      }).join('');
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
     }
 
-    function openClientModal(id, prefillOwner) {
+    function openClientModal(id = null, prefillOwner = null) {
       const c = id ? state.clients.find(x => x.id === id) : null;
-      const p = prefillOwner || {};
       document.getElementById('clientId').value = c ? c.id : '';
       document.getElementById('dogName').value = c ? c.dogName : '';
-      document.getElementById('ownerName').value = c ? c.ownerName : (p.ownerName || '');
-      document.getElementById('ownerPhone').value = c ? c.ownerPhone : (p.ownerPhone || '');
-      document.getElementById('ownerEmail').value = c ? (c.ownerEmail || '') : (p.ownerEmail || '');
-      document.getElementById('ownerAddress').value = c ? c.ownerAddress : (p.ownerAddress || '');
-      document.getElementById('accessCode').value = c ? (c.accessCode || '') : (p.accessCode || '');
-      document.getElementById('vetClinic').value = c ? (c.vetClinic || '') : (p.vetClinic || '');
-      document.getElementById('vetPhone').value = c ? (c.vetPhone || '') : (p.vetPhone || '');
+      document.getElementById('ownerName').value = c ? c.ownerName : (prefillOwner ? prefillOwner.ownerName : '');
+      document.getElementById('ownerPhone').value = c ? c.ownerPhone : (prefillOwner ? prefillOwner.ownerPhone : '');
+      document.getElementById('ownerEmail').value = c ? (c.ownerEmail || '') : (prefillOwner ? (prefillOwner.ownerEmail || '') : '');
+      document.getElementById('ownerAddress').value = c ? c.ownerAddress : (prefillOwner ? prefillOwner.ownerAddress : '');
+      document.getElementById('accessCode').value = c ? (c.accessCode || '') : (prefillOwner ? (prefillOwner.accessCode || '') : '');
       document.getElementById('petHealth').value = c ? (c.petHealth || '') : '';
-      document.getElementById('clientDeleteBtn').classList.toggle('hidden', !c);
-      showModal('clientModal');
+      document.getElementById('vetClinic').value = c ? (c.vetClinic || '') : (prefillOwner ? (prefillOwner.vetClinic || '') : '');
+      document.getElementById('vetPhone').value = c ? (c.vetPhone || '') : (prefillOwner ? (prefillOwner.vetPhone || '') : '');
+      
+      document.getElementById('clientModal').classList.remove('hidden');
     }
-    function addDogForOwner(clientId) {
+
+    function addSecondDogForOwner(clientId) {
       const existing = state.clients.find(x => x.id === clientId);
       if (existing) openClientModal(null, existing);
     }
-    function closeClientModal() { hideModal('clientModal'); }
+
+    function closeClientModal() {
+      document.getElementById('clientModal').classList.add('hidden');
+    }
 
     function saveClient() {
-      const rec = {
-        id: document.getElementById('clientId').value || 'cl_' + uid(),
-        dogName: document.getElementById('dogName').value.trim(),
-        ownerName: document.getElementById('ownerName').value.trim(),
-        ownerPhone: document.getElementById('ownerPhone').value.trim(),
-        ownerEmail: document.getElementById('ownerEmail').value.trim(),
-        ownerAddress: document.getElementById('ownerAddress').value.trim(),
-        accessCode: document.getElementById('accessCode').value.trim(),
-        petHealth: document.getElementById('petHealth').value.trim(),
-        vetClinic: document.getElementById('vetClinic').value.trim(),
-        vetPhone: document.getElementById('vetPhone').value.trim()
-      };
-      if (!rec.dogName || !rec.ownerName || !rec.ownerPhone || !rec.ownerAddress) {
-        return alert('Dog name, owner name, phone and pickup address are required.');
-      }
-      const idx = state.clients.findIndex(c => c.id === rec.id);
-      if (idx >= 0) state.clients[idx] = rec; else state.clients.push(rec);
-      persist();
-      closeClientModal();
-      renderClients(); renderSchedule(); renderBilling();
-    }
-
-    function deleteClient() {
       const id = document.getElementById('clientId').value;
-      const c = state.clients.find(x => x.id === id);
-      if (!c) return;
-      if (!confirm('Delete ' + c.dogName + '? They will be removed from all bookings too.')) return;
-      state.clients = state.clients.filter(x => x.id !== id);
-      state.bookings.forEach(b => { b.dogIds = b.dogIds.filter(d => d !== id); });
-      state.bookings = state.bookings.filter(b => b.dogIds.length > 0);
+      const dogName = document.getElementById('dogName').value.trim();
+      const ownerName = document.getElementById('ownerName').value.trim();
+      const ownerPhone = document.getElementById('ownerPhone').value.trim();
+      const ownerEmail = document.getElementById('ownerEmail').value.trim();
+      const ownerAddress = document.getElementById('ownerAddress').value.trim();
+      const accessCode = document.getElementById('accessCode').value.trim();
+      const petHealth = document.getElementById('petHealth').value.trim();
+      const vetClinic = document.getElementById('vetClinic').value.trim();
+      const vetPhone = document.getElementById('vetPhone').value.trim();
+
+      if (!dogName || !ownerName || !ownerPhone || !ownerAddress) {
+        return alert('Dog Name, Owner Name, Phone and Pickup Address are required.');
+      }
+
+      if (id) {
+        const idx = state.clients.findIndex(c => c.id === id);
+        if (idx > -1) {
+          state.clients[idx] = { id, dogName, ownerName, ownerPhone, ownerEmail, ownerAddress, accessCode, petHealth, vetClinic, vetPhone };
+        }
+      } else {
+        state.clients.push({ id: 'cl_' + Date.now(), dogName, ownerName, ownerPhone, ownerEmail, ownerAddress, accessCode, petHealth, vetClinic, vetPhone });
+      }
+
       persist();
       closeClientModal();
-      renderClients(); renderSchedule(); renderBilling();
+      renderClients();
+      renderSchedule();
     }
 
-    // ---------- RATES ----------
-    const RATE_KEYS = ['solo30', 'solo60', 'group60', 'pop30', 'pop60', 'secondDogDiscount'];
-    function loadRatesInputs() { RATE_KEYS.forEach(k => { document.getElementById('rate_' + k).value = state.rates[k]; }); }
-    function saveRates() {
-      RATE_KEYS.forEach(k => {
-        const v = parseFloat(document.getElementById('rate_' + k).value);
-        state.rates[k] = isNaN(v) ? defaultRates[k] : v;
+    function loadRatesInputs() {
+      ['solo30', 'solo60', 'group60', 'pop30', 'pop60', 'secondDogDiscount'].forEach(k => {
+        document.getElementById(`rate_${k}`).value = state.rates[k];
       });
-      persist(); loadRatesInputs(); renderSchedule(); renderBilling();
-      alert('Rates & discount saved!');
     }
 
-    // ---------- BILLING ----------
-    function getWeekData() {
-      const start = document.getElementById('billingWeekStart').value || mondayOf(fmtDate(new Date()));
-      const end = addDays(start, 6);
+    function saveRates() {
+      ['solo30', 'solo60', 'group60', 'pop30', 'pop60', 'secondDogDiscount'].forEach(k => {
+        state.rates[k] = parseFloat(document.getElementById(`rate_${k}`).value) || 0;
+      });
+      persist();
+      alert('Rates & discount saved!');
+      renderSchedule();
+      renderBilling();
+    }
+
+    function getWeeklyOwnerTotals() {
+      const startStr = document.getElementById('billingWeekStart').value;
+      if (!startStr) return { summary: {}, startStr: '', endStr: '' };
+      const startDate = new Date(startStr);
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + 6);
+      const endStr = endDate.toISOString().split('T')[0];
+
       const weekBookings = state.bookings
-        .filter(b => b.date >= start && b.date <= end)
+        .filter(b => b.date >= startStr && b.date <= endStr)
         .sort((a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime));
-      const owners = {};
+
+      const summary = {};
+
       weekBookings.forEach(b => {
-        const label = (SERVICE_META[b.serviceType] || { label: b.serviceType }).label;
-        calculateBookingDogPrices(b).forEach(r => {
-          const key = getOwnerKey(r.client);
-          if (!owners[key]) owners[key] = { ownerName: r.client.ownerName, email: r.client.ownerEmail || '', dogs: new Set(), lines: [], total: 0 };
-          owners[key].dogs.add(r.client.dogName);
-          owners[key].lines.push({ date: b.date, time: b.startTime, service: label, dog: r.client.dogName, price: r.finalPrice, discounted: r.isSecondDog, discountPct: r.discountPct });
-          owners[key].total += r.finalPrice;
+        const serviceLabel = SERVICE_META[b.serviceType].label;
+        const pricedDogs = calculateBookingDogPrices(b);
+
+        pricedDogs.forEach(({ client, isSecondDog, finalPrice, discountPct }) => {
+          const ownerKey = getOwnerKey(client);
+          if (!summary[ownerKey]) {
+            summary[ownerKey] = {
+              ownerName: client.ownerName,
+              ownerEmail: client.ownerEmail || '',
+              dogs: new Set(),
+              items: [],
+              total: 0
+            };
+          }
+          summary[ownerKey].dogs.add(client.dogName);
+          summary[ownerKey].items.push({
+            date: b.date,
+            time: b.startTime,
+            dogName: client.dogName,
+            serviceLabel: isSecondDog ? `${serviceLabel} (${discountPct}% 2nd Dog Discount)` : serviceLabel,
+            rate: finalPrice,
+            isSecondDog
+          });
+          summary[ownerKey].total += finalPrice;
         });
       });
-      const list = Object.values(owners).sort((a, b) => a.ownerName.localeCompare(b.ownerName));
-      return { start, end, list, total: list.reduce((s, o) => s + o.total, 0) };
+
+      return { summary, startStr, endStr };
     }
 
     function renderBilling() {
-      const { list, total } = getWeekData();
-      document.getElementById('weeklyTotalAmount').textContent = money(total);
-      const box = document.getElementById('billingBreakdown');
-      if (list.length === 0) {
-        box.innerHTML = '<div class="text-center py-8 text-taupe-600 text-sm bg-white rounded-2xl border border-dashed border-beige-300">No billable walks in this 7-day period.</div>';
+      const { summary } = getWeeklyOwnerTotals();
+      const container = document.getElementById('billingBreakdown');
+      const entries = Object.values(summary);
+
+      const grandTotal = entries.reduce((acc, e) => acc + e.total, 0);
+      document.getElementById('weeklyTotalAmount').textContent = `£${grandTotal.toFixed(2)}`;
+
+      if (entries.length === 0) {
+        container.innerHTML = `<div class="text-center py-8 text-taupe-600 text-sm bg-white rounded-2xl border border-dashed border-beige-300">No billable walks found in this 7-day period.</div>`;
         return;
       }
-      box.innerHTML = list.map(o => `
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-beige-200 space-y-2">
-          <div class="flex justify-between items-center border-b border-beige-200 pb-2">
-            <div>
-              <h4 class="font-bold text-taupe-900">${esc(o.ownerName)} <span class="text-xs font-normal text-taupe-600">(${esc(Array.from(o.dogs).join(', '))})</span></h4>
-              <p class="text-xs text-taupe-600">${esc(o.email || 'No email set')}</p>
-            </div>
-            <span class="font-bold text-blush-700 text-base">${money(o.total)}</span>
-          </div>
-          <ul class="text-xs space-y-1 text-taupe-800">
-            ${o.lines.map(l => `
-              <li class="flex justify-between gap-2">
-                <span>${esc(prettyDate(l.date))} ${esc(l.time)} · <strong>${esc(l.dog)}</strong> · ${esc(l.service)}${l.discounted ? ' <em class="text-blush-700">(' + esc(l.discountPct) + '% off)</em>' : ''}</span>
-                <span class="font-semibold whitespace-nowrap">${money(l.price)}</span>
-              </li>`).join('')}
-          </ul>
-        </div>`).join('');
-    }
 
-    function downloadFile(filename, content, mime) {
-      const blob = new Blob([content], { type: mime });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = filename;
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      container.innerHTML = entries.map(e => {
+        const dogList = Array.from(e.dogs).join(', ');
+        return `
+          <div class="bg-white p-4 rounded-2xl shadow-xs border border-beige-200 space-y-2">
+            <div class="flex justify-between items-center border-b border-beige-200 pb-2">
+              <div>
+                <h4 class="font-bold text-taupe-900">${e.ownerName} <span class="text-xs font-normal text-taupe-600">(${dogList})</span></h4>
+                <p class="text-xs text-taupe-600">${e.ownerEmail || 'No email set'}</p>
+              </div>
+              <span class="font-bold text-blush-700 text-base">£${e.total.toFixed(2)}</span>
+            </div>
+            <ul class="text-xs space-y-1 text-taupe-800">
+              ${e.items.map(i => `
+                <li class="flex justify-between items-center">
+                  <span>${i.date} (${i.time}) — <strong>${i.dogName}</strong>: ${i.serviceLabel}</span>
+                  <span class="font-semibold ${i.isSecondDog ? 'text-blush-700' : ''}">£${i.rate.toFixed(2)}</span>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+        `;
+      }).join('');
     }
-    function csvCell(v) { const s = String(v == null ? '' : v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
 
     function exportQuickBooksCSV() {
-      const { start, end, list } = getWeekData();
-      if (list.length === 0) return alert('No invoices to export for this week.');
-      const rows = [['InvoiceNo', 'Customer', 'CustomerEmail', 'InvoiceDate', 'DueDate', 'Item(Product/Service)', 'ItemDescription', 'ItemQuantity', 'ItemRate', 'ItemAmount'].join(',')];
-      list.forEach((o, i) => {
-        const invNo = 'INV-' + start.replace(/-/g, '') + '-' + (i + 1);
-        o.lines.forEach(l => {
+      const { summary, startStr, endStr } = getWeeklyOwnerTotals();
+      const entries = Object.values(summary);
+      if (entries.length === 0) return alert('No invoices to export for this week.');
+
+      const rows = [['*InvoiceNo', '*Customer', 'CustomerEmail', '*InvoiceDate', '*DueDate', 'Item(Product/Service)', 'ItemDescription', '*ItemQuantity', '*ItemRate', '*ItemAmount']];
+      entries.forEach((e, idx) => {
+        const invNo = `INV-${startStr.replace(/-/g, '')}-${idx + 1}`;
+        e.items.forEach(item => {
           rows.push([
-            invNo, o.ownerName, o.email, end, addDays(end, 7), l.service,
-            l.dog + ' - ' + prettyDate(l.date) + ' ' + l.time + (l.discounted ? ' (' + l.discountPct + '% 2nd dog discount)' : ''),
-            1, l.price.toFixed(2), l.price.toFixed(2)
-          ].map(csvCell).join(','));
+            invNo,
+            `"${e.ownerName}"`,
+            `"${e.ownerEmail}"`,
+            endStr,
+            endStr,
+            `"${item.serviceLabel}"`,
+            `"${item.dogName} - ${item.serviceLabel} on ${item.date} at ${item.time}"`,
+            1,
+            item.rate.toFixed(2),
+            item.rate.toFixed(2)
+          ]);
         });
       });
-      downloadFile('QuickBooks_Invoices_' + start + '.csv', rows.join('\n'), 'text/csv');
-    }
 
-    function copyText(text, okMsg) {
-      const fallback = () => {
-        const ta = document.createElement('textarea');
-        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
-        document.body.appendChild(ta); ta.select();
-        try { document.execCommand('copy'); alert(okMsg); } catch (e) { alert('Could not copy automatically.'); }
-        document.body.removeChild(ta);
-      };
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => alert(okMsg)).catch(fallback);
-      else fallback();
+      const csvContent = 'data:text/csv;charset=utf-8,' + rows.map(r => r.join(',')).join('\n');
+      const link = document.createElement('a');
+      link.setAttribute('href', encodeURI(csvContent));
+      link.setAttribute('download', `QuickBooks_Invoices_${startStr}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
     }
 
     function copyWeeklySummary() {
-      const { start, end, list, total } = getWeekData();
-      if (list.length === 0) return alert('Nothing to copy for this week.');
-      let out = 'Weekly Invoice Summary (' + prettyDate(start) + ' to ' + prettyDate(end) + ')\n\n';
-      list.forEach(o => { out += o.ownerName + ' (' + Array.from(o.dogs).join(', ') + '): ' + money(o.total) + ' (' + o.lines.length + ' sessions)\n'; });
-      out += '\nTOTAL: ' + money(total);
-      copyText(out, 'Summary copied to clipboard!');
+      const { summary, startStr, endStr } = getWeeklyOwnerTotals();
+      const entries = Object.values(summary);
+      if (entries.length === 0) return alert('Nothing to copy for this week.');
+
+      const text = entries.map(e =>
+        `${e.ownerName} (${Array.from(e.dogs).join(', ')}): £${e.total.toFixed(2)} (${e.items.length} sessions)`
+      ).join('\n');
+      navigator.clipboard.writeText(`Weekly Invoice Summary (${startStr} to ${endStr}):\n` + text);
+      alert('Summary copied to clipboard!');
     }
 
-    // ---------- BACKUP ----------
+    // --- BACKUP & RESTORE ---
     function exportBackupJSON() {
-      const data = { version: 2, exportedAt: new Date().toISOString(), clients: state.clients, bookings: state.bookings, rates: state.rates, brandName: state.brandName, logoDataUrl: state.logoDataUrl };
-      downloadFile('PawTrack_Backup_' + fmtDate(new Date()) + '.json', JSON.stringify(data, null, 2), 'application/json');
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(state));
+      const a = document.createElement('a');
+      a.href = dataStr;
+      a.download = `PawTrack_Backup_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
     }
+
     function importBackupJSON(event) {
       const file = event.target.files[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = e => {
         try {
-          const data = JSON.parse(e.target.result);
-          if (!Array.isArray(data.clients) || !Array.isArray(data.bookings)) throw new Error('bad');
-          if (!confirm('Restoring replaces your current clients, bookings and rates. Continue?')) return;
-          state.clients = data.clients;
-          state.bookings = data.bookings.map(b => Object.assign({}, b, {
-            seriesId: b.seriesId || b.recurringId || null,
-            endTime: b.endTime || addMinutes(b.startTime, durationOf(b.serviceType))
-          }));
-          state.rates = Object.assign({}, defaultRates, data.rates || {});
-          state.brandName = data.brandName || 'PawTrack';
-          state.logoDataUrl = data.logoDataUrl || '';
-          persist(); applyBranding(); loadRatesInputs();
-          renderSchedule(); renderClients(); renderBilling();
-          alert('Backup restored!');
+          const imported = JSON.parse(e.target.result);
+          if (imported.clients && imported.bookings && imported.rates) {
+            state = Object.assign(state, imported);
+            persist();
+            applyBranding();
+            loadRatesInputs();
+            renderSchedule();
+            renderClients();
+            renderBilling();
+            alert('Backup restored successfully!');
+          }
         } catch (err) {
-          alert('That file could not be read as a PawTrack backup.');
+          alert('Invalid backup file.');
         }
       };
       reader.readAsText(file);
-      event.target.value = '';
     }
   </script>
 </body>
