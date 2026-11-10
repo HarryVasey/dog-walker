@@ -7,43 +7,86 @@
 
   <!-- iOS Web App (PWA) Meta Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="PawTrack" />
-  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23059669'/><text y='68' x='50' text-anchor='middle' font-size='55'>🐾</text></svg>" />
+  <meta name="theme-color" content="#fdf8f5" />
+
+  <!-- Dynamic Apple Touch Icon (Updated via Logo Uploader or logo.png in repo) -->
+  <link id="appleTouchIcon" rel="apple-touch-icon" href="logo.png" />
+  <link id="favIcon" rel="icon" type="image/png" href="logo.png" />
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            beige: {
+              50: '#fdfaf7',
+              100: '#f9f1eb',
+              200: '#f1e3d8',
+              300: '#e5cebe',
+            },
+            blush: {
+              50: '#fcf3f4',
+              100: '#f9e5e8',
+              200: '#f2ccd2',
+              400: '#df9aa6',
+              500: '#cf7d8b',
+              600: '#b86372',
+              700: '#994d5b',
+            },
+            taupe: {
+              600: '#6e5d54',
+              800: '#4a3e37',
+              900: '#362d28',
+            }
+          }
+        }
+      }
+    }
+  </script>
   <style>
-    body { -webkit-tap-highlight-color: transparent; padding-bottom: 90px; }
+    body { -webkit-tap-highlight-color: transparent; padding-bottom: 96px; background-color: #fdfaf7; color: #362d28; }
     .safe-top { padding-top: env(safe-area-inset-top, 16px); }
     .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 16px); }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen">
+<body class="font-sans min-h-screen">
 
   <!-- Top Header -->
-  <header class="bg-emerald-600 text-white px-4 py-3 safe-top shadow-md sticky top-0 z-20 flex justify-between items-center">
-    <div class="flex items-center gap-2">
-      <span class="text-2xl">🐾</span>
-      <h1 class="text-lg font-bold tracking-tight">PawTrack Pro</h1>
+  <header class="bg-beige-100/95 backdrop-blur border-b border-beige-200 text-taupe-900 px-4 py-3 safe-top sticky top-0 z-20 flex justify-between items-center">
+    <div class="flex items-center gap-2.5">
+      <img id="headerLogo" src="" alt="Logo" class="w-9 h-9 rounded-xl object-cover border border-beige-300 hidden" />
+      <div id="headerFallbackIcon" class="w-9 h-9 rounded-xl bg-blush-200 flex items-center justify-center text-lg">🐾</div>
+      <div>
+        <h1 id="headerBrandName" class="text-base font-bold tracking-tight text-taupe-900 leading-tight">PawTrack</h1>
+        <p class="text-[11px] text-taupe-600">Dog Walking & Care</p>
+      </div>
     </div>
-    <span id="headerDate" class="text-xs bg-emerald-700 px-2.5 py-1 rounded-full font-medium"></span>
+    <span id="headerDate" class="text-xs bg-blush-100 text-blush-700 border border-blush-200 px-2.5 py-1 rounded-full font-semibold"></span>
   </header>
 
   <!-- Main Content Container -->
   <main class="max-w-md mx-auto p-4 space-y-4">
 
-    <!-- TAB 1: SCHEDULE (15-Min Calendar) -->
-    <section id="tab-schedule" class="space-y-4">
-      <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between gap-2">
-        <button onclick="changeDay(-1)" class="px-3 py-1.5 bg-slate-100 rounded-lg font-bold text-slate-600 active:bg-slate-200">◀</button>
-        <input type="date" id="scheduleDate" onchange="renderSchedule()" class="font-semibold text-center bg-transparent text-slate-800 focus:outline-none" />
-        <button onclick="changeDay(1)" class="px-3 py-1.5 bg-slate-100 rounded-lg font-bold text-slate-600 active:bg-slate-200">▶</button>
+    <!-- TAB 1: SCHEDULE (15-Min Calendar + Recurring) -->
+    <section id="tab-schedule" class="space-y-3.5">
+      <div class="bg-white p-3 rounded-2xl shadow-sm border border-beige-200 flex items-center justify-between gap-2">
+        <button onclick="changeDay(-1)" class="px-3.5 py-1.5 bg-beige-100 rounded-xl font-bold text-taupe-800 active:bg-beige-200">◀</button>
+        <input type="date" id="scheduleDate" onchange="renderSchedule()" class="font-semibold text-center bg-transparent text-taupe-900 focus:outline-none" />
+        <button onclick="changeDay(1)" class="px-3.5 py-1.5 bg-beige-100 rounded-xl font-bold text-taupe-800 active:bg-beige-200">▶</button>
       </div>
 
-      <button onclick="openBookingModal()" class="w-full bg-emerald-600 text-white font-semibold py-3 rounded-xl shadow-sm active:bg-emerald-700 flex items-center justify-center gap-2">
-        <span>＋ Book Walk / Pop-In (15m Slots)</span>
-      </button>
+      <div class="grid grid-cols-3 gap-2">
+        <button onclick="openBookingModal()" class="col-span-2 bg-blush-500 text-white font-semibold py-3 px-3 rounded-2xl shadow-sm active:bg-blush-600 text-sm flex items-center justify-center gap-1.5">
+          <span>＋ Book Walk / Visit</span>
+        </button>
+        <button onclick="copyPreviousWeekSchedule()" class="bg-beige-100 border border-beige-300 text-taupe-800 font-semibold py-3 px-2 rounded-2xl text-xs active:bg-beige-200">
+          🔄 Copy Last Wk
+        </button>
+      </div>
 
       <!-- Day Bookings List -->
       <div id="dayBookingsList" class="space-y-2.5"></div>
@@ -51,7 +94,10 @@
 
     <!-- TAB 2: CLIENTS & DOGS -->
     <section id="tab-clients" class="hidden space-y-4">
-      <button onclick="openClientModal()" class="w-full bg-emerald-600 text-white font-semibold py-3 rounded-xl shadow-sm active:bg-emerald-700">
+      <div class="bg-blush-50 border border-blush-200 rounded-2xl p-3 text-xs text-taupe-800">
+        💡 <strong>Multi-Dog Households:</strong> Dogs sharing the same <strong>Owner Name</strong> or <strong>Phone Number</strong> automatically qualify for your <strong>50% 2nd-dog discount</strong> when booked onto the same walk.
+      </div>
+      <button onclick="openClientModal()" class="w-full bg-blush-500 text-white font-semibold py-3 rounded-2xl shadow-sm active:bg-blush-600 text-sm">
         ＋ Add New Dog & Client
       </button>
       <div id="clientsList" class="space-y-3"></div>
@@ -59,21 +105,24 @@
 
     <!-- TAB 3: WEEKLY INVOICING & QUICKBOOKS -->
     <section id="tab-billing" class="hidden space-y-4">
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
-        <h2 class="font-bold text-slate-800 text-base">Weekly Invoice Summary</h2>
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-beige-200 space-y-3">
+        <h2 class="font-bold text-taupe-900 text-base">Weekly Invoice Summary</h2>
         <div class="flex items-center justify-between gap-2 text-sm">
-          <label class="text-slate-500 font-medium">Week Starting (Mon):</label>
-          <input type="date" id="billingWeekStart" onchange="renderBilling()" class="border border-slate-300 rounded-lg px-2.5 py-1.5 font-medium" />
+          <label class="text-taupe-600 font-medium">Week Starting (Mon):</label>
+          <input type="date" id="billingWeekStart" onchange="renderBilling()" class="border border-beige-300 bg-beige-50 rounded-xl px-2.5 py-1.5 font-medium text-taupe-900" />
         </div>
-        <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3 flex justify-between items-center">
-          <span class="text-sm font-medium text-emerald-900">Total Weekly Revenue</span>
-          <span id="weeklyTotalAmount" class="text-xl font-bold text-emerald-700">£0.00</span>
+        <div class="bg-blush-50 border border-blush-200 rounded-xl p-3.5 flex justify-between items-center">
+          <div>
+            <span class="text-xs font-semibold uppercase tracking-wide text-blush-700 block">Total to Invoice</span>
+            <span class="text-[11px] text-taupe-600">Includes 2nd-dog 50% discounts</span>
+          </div>
+          <span id="weeklyTotalAmount" class="text-2xl font-bold text-blush-700">£0.00</span>
         </div>
         <div class="grid grid-cols-2 gap-2 pt-1">
-          <button onclick="exportQuickBooksCSV()" class="bg-slate-800 text-white text-xs font-semibold py-2.5 px-3 rounded-lg active:bg-slate-900">
+          <button onclick="exportQuickBooksCSV()" class="bg-taupe-800 text-white text-xs font-semibold py-2.5 px-3 rounded-xl active:bg-taupe-900">
             📥 QuickBooks CSV
           </button>
-          <button onclick="copyWeeklySummary()" class="bg-emerald-600 text-white text-xs font-semibold py-2.5 px-3 rounded-lg active:bg-emerald-700">
+          <button onclick="copyWeeklySummary()" class="bg-blush-500 text-white text-xs font-semibold py-2.5 px-3 rounded-xl active:bg-blush-600">
             📋 Copy Summary
           </button>
         </div>
@@ -82,46 +131,72 @@
       <div id="billingBreakdown" class="space-y-3"></div>
     </section>
 
-    <!-- TAB 4: RATES & DATA BACKUP -->
+    <!-- TAB 4: RATES, BRANDING & BACKUP -->
     <section id="tab-rates" class="hidden space-y-4">
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
-        <h2 class="font-bold text-slate-800 text-base">Service Rates (£ / $)</h2>
-        <div class="space-y-2 text-sm">
+
+      <!-- App Icon / Logo Uploader -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-beige-200 space-y-3">
+        <h2 class="font-bold text-taupe-900 text-base">Branding & iPhone App Icon</h2>
+        <p class="text-xs text-taupe-600">Upload your business logo below, then tap <strong>Share → Add to Home Screen</strong> in Safari so your logo becomes the app icon.</p>
+        <div class="flex items-center gap-3">
+          <img id="settingsLogoPreview" src="" class="w-14 h-14 rounded-2xl object-cover border border-beige-300 bg-beige-50 hidden" />
+          <div class="flex-1 space-y-2">
+            <input id="brandNameInput" placeholder="Business Name (e.g. Bella's Walks)" class="w-full border border-beige-300 bg-beige-50 rounded-xl px-3 py-2 text-xs font-semibold" onchange="saveBrandName()" />
+            <label class="block w-full bg-blush-100 border border-blush-200 text-blush-700 text-xs font-semibold py-2 rounded-xl text-center cursor-pointer active:bg-blush-200">
+              🖼️ Upload Logo Image
+              <input type="file" accept="image/*" onchange="handleLogoUpload(event)" class="hidden" />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Service Rates & Multi-Dog Discount -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-beige-200 space-y-3">
+        <h2 class="font-bold text-taupe-900 text-base">Service Rates & Discounts</h2>
+        <div class="space-y-2.5 text-sm">
           <div class="flex justify-between items-center">
             <label>Solo Walk (30 mins)</label>
-            <input type="number" step="0.5" id="rate_solo30" class="w-24 border rounded-lg px-2.5 py-1.5 text-right font-semibold" />
+            <input type="number" step="0.5" id="rate_solo30" class="w-24 border border-beige-300 bg-beige-50 rounded-xl px-2.5 py-1.5 text-right font-semibold" />
           </div>
           <div class="flex justify-between items-center">
             <label>Solo Walk (60 mins)</label>
-            <input type="number" step="0.5" id="rate_solo60" class="w-24 border rounded-lg px-2.5 py-1.5 text-right font-semibold" />
+            <input type="number" step="0.5" id="rate_solo60" class="w-24 border border-beige-300 bg-beige-50 rounded-xl px-2.5 py-1.5 text-right font-semibold" />
           </div>
           <div class="flex justify-between items-center">
-            <label>Group Walk (60 mins / per dog)</label>
-            <input type="number" step="0.5" id="rate_group60" class="w-24 border rounded-lg px-2.5 py-1.5 text-right font-semibold" />
+            <label>Group Walk (60 mins)</label>
+            <input type="number" step="0.5" id="rate_group60" class="w-24 border border-beige-300 bg-beige-50 rounded-xl px-2.5 py-1.5 text-right font-semibold" />
           </div>
           <div class="flex justify-between items-center">
             <label>Pop-In Visit (30 mins)</label>
-            <input type="number" step="0.5" id="rate_pop30" class="w-24 border rounded-lg px-2.5 py-1.5 text-right font-semibold" />
+            <input type="number" step="0.5" id="rate_pop30" class="w-24 border border-beige-300 bg-beige-50 rounded-xl px-2.5 py-1.5 text-right font-semibold" />
           </div>
           <div class="flex justify-between items-center">
             <label>Pop-In Visit (60 mins)</label>
-            <input type="number" step="0.5" id="rate_pop60" class="w-24 border rounded-lg px-2.5 py-1.5 text-right font-semibold" />
+            <input type="number" step="0.5" id="rate_pop60" class="w-24 border border-beige-300 bg-beige-50 rounded-xl px-2.5 py-1.5 text-right font-semibold" />
+          </div>
+          <hr class="border-beige-200" />
+          <div class="flex justify-between items-center">
+            <div>
+              <label class="font-semibold text-blush-700">2nd Dog Discount (%)</label>
+              <p class="text-[11px] text-taupe-600">Same owner on the same walk</p>
+            </div>
+            <input type="number" step="5" min="0" max="100" id="rate_secondDogDiscount" class="w-24 border border-blush-200 bg-blush-50 rounded-xl px-2.5 py-1.5 text-right font-bold text-blush-700" />
           </div>
         </div>
-        <button onclick="saveRates()" class="w-full bg-emerald-600 text-white font-semibold py-2.5 rounded-lg mt-2">
-          Save Rates
+        <button onclick="saveRates()" class="w-full bg-blush-500 text-white font-semibold py-2.5 rounded-xl mt-2 active:bg-blush-600 text-sm">
+          Save Rates & Discount
         </button>
       </div>
 
       <!-- Backup & Restore -->
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
-        <h2 class="font-bold text-slate-800 text-base">iPhone Data Backup</h2>
-        <p class="text-xs text-slate-500">Export a backup file to your iPhone Files app so you never lose client records if Safari cache is cleared.</p>
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-beige-200 space-y-3">
+        <h2 class="font-bold text-taupe-900 text-base">iPhone Data Backup</h2>
+        <p class="text-xs text-taupe-600">Save a backup copy to your iPhone Files app so your clients and calendar are always safe.</p>
         <div class="flex gap-2">
-          <button onclick="exportBackupJSON()" class="flex-1 bg-slate-100 border border-slate-300 text-slate-700 text-xs font-semibold py-2.5 rounded-lg">
+          <button onclick="exportBackupJSON()" class="flex-1 bg-beige-100 border border-beige-300 text-taupe-800 text-xs font-semibold py-2.5 rounded-xl">
             ⬇️ Download Backup
           </button>
-          <label class="flex-1 bg-slate-100 border border-slate-300 text-slate-700 text-xs font-semibold py-2.5 rounded-lg text-center cursor-pointer">
+          <label class="flex-1 bg-beige-100 border border-beige-300 text-taupe-800 text-xs font-semibold py-2.5 rounded-xl text-center cursor-pointer">
             ⬆️ Restore Backup
             <input type="file" accept=".json" onchange="importBackupJSON(event)" class="hidden" />
           </label>
@@ -132,38 +207,38 @@
   </main>
 
   <!-- MODAL: ADD/EDIT CLIENT -->
-  <div id="clientModal" class="fixed inset-0 bg-black/50 z-30 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl p-5 space-y-3 max-h-[90vh] overflow-y-auto">
-      <h3 class="font-bold text-lg">Dog & Client Details</h3>
+  <div id="clientModal" class="fixed inset-0 bg-black/40 z-30 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-beige-50 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-3 max-h-[90vh] overflow-y-auto border-t border-beige-200">
+      <h3 class="font-bold text-lg text-taupe-900">Dog & Client Details</h3>
       <input type="hidden" id="clientId" />
-      <input id="dogName" placeholder="Dog Name (e.g. Barnaby) *" class="w-full border rounded-lg p-2.5 text-sm" />
-      <input id="ownerName" placeholder="Owner Full Name *" class="w-full border rounded-lg p-2.5 text-sm" />
+      <input id="dogName" placeholder="Dog Name (e.g. Barnaby) *" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
+      <input id="ownerName" placeholder="Owner Full Name (match exact name for 2nd dog) *" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
       <div class="grid grid-cols-2 gap-2">
-        <input id="ownerPhone" type="tel" placeholder="Phone Number *" class="w-full border rounded-lg p-2.5 text-sm" />
-        <input id="ownerEmail" type="email" placeholder="Email (for QuickBooks)" class="w-full border rounded-lg p-2.5 text-sm" />
+        <input id="ownerPhone" type="tel" placeholder="Phone Number *" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
+        <input id="ownerEmail" type="email" placeholder="Email (QuickBooks)" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
       </div>
-      <input id="ownerAddress" placeholder="Pickup Address *" class="w-full border rounded-lg p-2.5 text-sm" />
-      <input id="accessCode" placeholder="Keysafe / Alarm / Gate Code" class="w-full border rounded-lg p-2.5 text-sm" />
-      <textarea id="petHealth" rows="3" placeholder="Pet Health, Vet Info, Allergies, Recall/Lead Notes..." class="w-full border rounded-lg p-2.5 text-sm"></textarea>
+      <input id="ownerAddress" placeholder="Pickup Address *" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
+      <input id="accessCode" placeholder="Keysafe / Alarm / Gate Code" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
+      <textarea id="petHealth" rows="3" placeholder="Pet Health, Vet Info, Allergies, Recall/Lead Notes..." class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm"></textarea>
       <div class="flex gap-2 pt-2">
-        <button onclick="closeClientModal()" class="flex-1 py-2.5 bg-slate-100 rounded-lg font-semibold text-sm">Cancel</button>
-        <button onclick="saveClient()" class="flex-1 py-2.5 bg-emerald-600 text-white rounded-lg font-semibold text-sm">Save Client</button>
+        <button onclick="closeClientModal()" class="flex-1 py-2.5 bg-beige-200 text-taupe-800 rounded-xl font-semibold text-sm">Cancel</button>
+        <button onclick="saveClient()" class="flex-1 py-2.5 bg-blush-500 text-white rounded-xl font-semibold text-sm">Save Client</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: BOOK WALK (15-Min Increments) -->
-  <div id="bookingModal" class="fixed inset-0 bg-black/50 z-30 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl p-5 space-y-3 max-h-[90vh] overflow-y-auto">
-      <h3 class="font-bold text-lg">Schedule Service</h3>
+  <!-- MODAL: BOOK WALK (15-Min Increments + Recurring Option) -->
+  <div id="bookingModal" class="fixed inset-0 bg-black/40 z-30 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-beige-50 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-3 max-h-[92vh] overflow-y-auto border-t border-beige-200">
+      <h3 class="font-bold text-lg text-taupe-900">Schedule Walk or Pop-In</h3>
       <div class="grid grid-cols-2 gap-2">
         <div>
-          <label class="text-xs font-semibold text-slate-500">Start Time (15m slots)</label>
-          <select id="bookingStartTime" class="w-full border rounded-lg p-2.5 text-sm font-medium"></select>
+          <label class="text-xs font-semibold text-taupe-600">Start Time (15m slots)</label>
+          <select id="bookingStartTime" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm font-medium mt-1"></select>
         </div>
         <div>
-          <label class="text-xs font-semibold text-slate-500">Service Type</label>
-          <select id="bookingServiceType" class="w-full border rounded-lg p-2.5 text-sm font-medium">
+          <label class="text-xs font-semibold text-taupe-600">Service Type</label>
+          <select id="bookingServiceType" class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm font-medium mt-1">
             <option value="solo30">Solo Walk (30m)</option>
             <option value="solo60">Solo Walk (60m)</option>
             <option value="group60">Group Walk (60m)</option>
@@ -174,440 +249,4 @@
       </div>
 
       <div>
-        <label class="text-xs font-semibold text-slate-500">Select Dog(s) (Check multiple for Group Walks)</label>
-        <div id="bookingDogsChecklist" class="border rounded-lg p-2.5 max-h-40 overflow-y-auto space-y-1.5 mt-1"></div>
-      </div>
-
-      <input id="bookingNotes" placeholder="Session notes (e.g. Towel dry, give meds)..." class="w-full border rounded-lg p-2.5 text-sm" />
-
-      <div class="flex gap-2 pt-2">
-        <button onclick="closeBookingModal()" class="flex-1 py-2.5 bg-slate-100 rounded-lg font-semibold text-sm">Cancel</button>
-        <button onclick="saveBooking()" class="flex-1 py-2.5 bg-emerald-600 text-white rounded-lg font-semibold text-sm">Confirm Booking</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Bottom Navigation Bar -->
-  <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 flex justify-around py-2 safe-bottom z-20 max-w-md mx-auto">
-    <button onclick="switchTab('schedule')" id="nav-schedule" class="flex flex-col items-center text-emerald-600 font-semibold text-xs">
-      <span class="text-lg">📅</span><span>Schedule</span>
-    </button>
-    <button onclick="switchTab('clients')" id="nav-clients" class="flex flex-col items-center text-slate-400 font-medium text-xs">
-      <span class="text-lg">🐶</span><span>Clients</span>
-    </button>
-    <button onclick="switchTab('billing')" id="nav-billing" class="flex flex-col items-center text-slate-400 font-medium text-xs">
-      <span class="text-lg">💷</span><span>Invoices</span>
-    </button>
-    <button onclick="switchTab('rates')" id="nav-rates" class="flex flex-col items-center text-slate-400 font-medium text-xs">
-      <span class="text-lg">⚙️</span><span>Rates</span>
-    </button>
-  </nav>
-
-  <script>
-    // --- STATE & STORAGE ---
-    const SERVICE_META = {
-      solo30:  { label: 'Solo Walk (30m)',  duration: 30, badge: 'bg-blue-100 text-blue-800' },
-      solo60:  { label: 'Solo Walk (60m)',  duration: 60, badge: 'bg-indigo-100 text-indigo-800' },
-      group60: { label: 'Group Walk (60m)', duration: 60, badge: 'bg-emerald-100 text-emerald-800' },
-      pop30:   { label: 'Pop-In (30m)',     duration: 30, badge: 'bg-amber-100 text-amber-800' },
-      pop60:   { label: 'Pop-In (60m)',     duration: 60, badge: 'bg-orange-100 text-orange-800' }
-    };
-
-    let state = {
-      clients: JSON.parse(localStorage.getItem('pt_clients') || '[]'),
-      bookings: JSON.parse(localStorage.getItem('pt_bookings') || '[]'),
-      rates: JSON.parse(localStorage.getItem('pt_rates') || '{"solo30":14,"solo60":22,"group60":16,"pop30":12,"pop60":18}')
-    };
-
-    function persist() {
-      localStorage.setItem('pt_clients', JSON.stringify(state.clients));
-      localStorage.setItem('pt_bookings', JSON.stringify(state.bookings));
-      localStorage.setItem('pt_rates', JSON.stringify(state.rates));
-    }
-
-    // --- INIT ---
-    window.addEventListener('DOMContentLoaded', () => {
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('scheduleDate').value = today;
-      document.getElementById('headerDate').textContent = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-      
-      // Set default Monday of current week
-      const d = new Date();
-      const day = d.getDay(), diff = d.getDate() - day + (day === 0 ? -6 : 1);
-      const monday = new Date(d.setDate(diff)).toISOString().split('T')[0];
-      document.getElementById('billingWeekStart').value = monday;
-
-      populate15MinSlots();
-      loadRatesInputs();
-      renderSchedule();
-      renderClients();
-      renderBilling();
-    });
-
-    function populate15MinSlots() {
-      const sel = document.getElementById('bookingStartTime');
-      sel.innerHTML = '';
-      for (let h = 6; h <= 20; h++) {
-        for (let m of [0, 15, 30, 45]) {
-          const hh = String(h).padStart(2, '0');
-          const mm = String(m).padStart(2, '0');
-          const opt = document.createElement('option');
-          opt.value = `${hh}:${mm}`;
-          opt.textContent = `${hh}:${mm}`;
-          if (h === 9 && m === 0) opt.selected = true;
-          sel.appendChild(opt);
-        }
-      }
-    }
-
-    function addMinutes(timeStr, mins) {
-      const [h, m] = timeStr.split(':').map(Number);
-      const total = h * 60 + m + mins;
-      const nh = String(Math.floor(total / 60) % 24).padStart(2, '0');
-      const nm = String(total % 60).padStart(2, '0');
-      return `${nh}:${nm}`;
-    }
-
-    // --- NAVIGATION ---
-    function switchTab(tab) {
-      ['schedule', 'clients', 'billing', 'rates'].forEach(t => {
-        document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
-        const nav = document.getElementById(`nav-${t}`);
-        nav.className = t === tab
-          ? 'flex flex-col items-center text-emerald-600 font-semibold text-xs'
-          : 'flex flex-col items-center text-slate-400 font-medium text-xs';
-      });
-      if (tab === 'billing') renderBilling();
-    }
-
-    // --- SCHEDULE ---
-    function changeDay(offset) {
-      const input = document.getElementById('scheduleDate');
-      const d = new Date(input.value);
-      d.setDate(d.getDate() + offset);
-      input.value = d.toISOString().split('T')[0];
-      renderSchedule();
-    }
-
-    function openBookingModal() {
-      if (state.clients.length === 0) {
-        alert('Please add at least one dog/client in the Clients tab first!');
-        switchTab('clients');
-        return;
-      }
-      const list = document.getElementById('bookingDogsChecklist');
-      list.innerHTML = state.clients.map(c => `
-        <label class="flex items-center gap-2 text-sm py-1">
-          <input type="checkbox" value="${c.id}" class="booking-dog-cb w-4 h-4 accent-emerald-600" />
-          <span class="font-semibold">${c.dogName}</span>
-          <span class="text-xs text-slate-400">(${c.ownerName})</span>
-        </label>
-      `).join('');
-      document.getElementById('bookingNotes').value = '';
-      document.getElementById('bookingModal').classList.remove('hidden');
-    }
-
-    function closeBookingModal() {
-      document.getElementById('bookingModal').classList.add('hidden');
-    }
-
-    function saveBooking() {
-      const date = document.getElementById('scheduleDate').value;
-      const startTime = document.getElementById('bookingStartTime').value;
-      const serviceType = document.getElementById('bookingServiceType').value;
-      const notes = document.getElementById('bookingNotes').value.trim();
-      const dogIds = Array.from(document.querySelectorAll('.booking-dog-cb:checked')).map(cb => cb.value);
-
-      if (dogIds.length === 0) return alert('Select at least one dog.');
-      if (serviceType !== 'group60' && dogIds.length > 1) {
-        if (!confirm('You selected multiple dogs for a Solo/Pop-In service. Each dog will be billed at that rate. Continue?')) return;
-      }
-
-      const endTime = addMinutes(startTime, SERVICE_META[serviceType].duration);
-      state.bookings.push({
-        id: 'bk_' + Date.now(),
-        date, startTime, endTime, serviceType, dogIds, notes
-      });
-      persist();
-      closeBookingModal();
-      renderSchedule();
-    }
-
-    function deleteBooking(id) {
-      if (!confirm('Remove this booking?')) return;
-      state.bookings = state.bookings.filter(b => b.id !== id);
-      persist();
-      renderSchedule();
-    }
-
-    function renderSchedule() {
-      const date = document.getElementById('scheduleDate').value;
-      const container = document.getElementById('dayBookingsList');
-      const dayItems = state.bookings
-        .filter(b => b.date === date)
-        .sort((a, b) => a.startTime.localeCompare(b.startTime));
-
-      if (dayItems.length === 0) {
-        container.innerHTML = `<div class="text-center py-10 text-slate-400 text-sm bg-white rounded-xl border border-dashed border-slate-200">No walks or pop-ins booked for this day.</div>`;
-        return;
-      }
-
-      container.innerHTML = dayItems.map(b => {
-        const meta = SERVICE_META[b.serviceType];
-        const dogs = b.dogIds.map(id => state.clients.find(c => c.id === id)).filter(Boolean);
-        return `
-          <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 space-y-2">
-            <div class="flex justify-between items-start">
-              <div>
-                <span class="font-bold text-slate-900 text-base">${b.startTime} – ${b.endTime}</span>
-                <span class="ml-2 text-xs px-2 py-0.5 rounded-full font-semibold ${meta.badge}">${meta.label}</span>
-              </div>
-              <button onclick="deleteBooking('${b.id}')" class="text-xs text-rose-500 font-semibold">✕</button>
-            </div>
-            <div class="space-y-1">
-              ${dogs.map(d => `
-                <div class="text-sm flex flex-wrap items-center justify-between bg-slate-50 px-2.5 py-1.5 rounded-lg">
-                  <div>
-                    <span class="font-bold">🐕 ${d.dogName}</span>
-                    <span class="text-xs text-slate-500 ml-1">(${d.ownerName})</span>
-                    ${d.accessCode ? `<span class="text-xs bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded ml-1">🔑 ${d.accessCode}</span>` : ''}
-                  </div>
-                  <div class="flex gap-2 text-xs">
-                    <a href="tel:${d.ownerPhone}" class="text-emerald-600 font-semibold">Call</a>
-                    <a href="http://maps.apple.com/?q=${encodeURIComponent(d.ownerAddress)}" target="_blank" class="text-blue-600 font-semibold">Map</a>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-            ${b.notes ? `<p class="text-xs text-slate-600 italic">📝 ${b.notes}</p>` : ''}
-          </div>
-        `;
-      }).join('');
-    }
-
-    // --- CLIENTS ---
-    function openClientModal(id = null) {
-      const c = id ? state.clients.find(x => x.id === id) : null;
-      document.getElementById('clientId').value = c ? c.id : '';
-      document.getElementById('dogName').value = c ? c.dogName : '';
-      document.getElementById('ownerName').value = c ? c.ownerName : '';
-      document.getElementById('ownerPhone').value = c ? c.ownerPhone : '';
-      document.getElementById('ownerEmail').value = c ? (c.ownerEmail || '') : '';
-      document.getElementById('ownerAddress').value = c ? c.ownerAddress : '';
-      document.getElementById('accessCode').value = c ? (c.accessCode || '') : '';
-      document.getElementById('petHealth').value = c ? (c.petHealth || '') : '';
-      document.getElementById('clientModal').classList.remove('hidden');
-    }
-
-    function closeClientModal() {
-      document.getElementById('clientModal').classList.add('hidden');
-    }
-
-    function saveClient() {
-      const id = document.getElementById('clientId').value;
-      const dogName = document.getElementById('dogName').value.trim();
-      const ownerName = document.getElementById('ownerName').value.trim();
-      const ownerPhone = document.getElementById('ownerPhone').value.trim();
-      const ownerEmail = document.getElementById('ownerEmail').value.trim();
-      const ownerAddress = document.getElementById('ownerAddress').value.trim();
-      const accessCode = document.getElementById('accessCode').value.trim();
-      const petHealth = document.getElementById('petHealth').value.trim();
-
-      if (!dogName || !ownerName) return alert('Dog Name and Owner Name are required.');
-
-      if (id) {
-        const idx = state.clients.findIndex(c => c.id === id);
-        if (idx > -1) state.clients[idx] = { id, dogName, ownerName, ownerPhone, ownerEmail, ownerAddress, accessCode, petHealth };
-      } else {
-        state.clients.push({ id: 'cl_' + Date.now(), dogName, ownerName, ownerPhone, ownerEmail, ownerAddress, accessCode, petHealth });
-      }
-      persist();
-      closeClientModal();
-      renderClients();
-      renderSchedule();
-    }
-
-    function renderClients() {
-      const container = document.getElementById('clientsList');
-      if (state.clients.length === 0) {
-        container.innerHTML = `<div class="text-center py-10 text-slate-400 text-sm bg-white rounded-xl border border-dashed border-slate-200">No dogs added yet. Tap above to add your first client!</div>`;
-        return;
-      }
-      container.innerHTML = state.clients.map(c => `
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-2">
-          <div class="flex justify-between items-start">
-            <div>
-              <h3 class="font-bold text-base text-slate-900">🐶 ${c.dogName}</h3>
-              <p class="text-xs text-slate-500">Owner: <span class="font-semibold text-slate-700">${c.ownerName}</span></p>
-            </div>
-            <button onclick="openClientModal('${c.id}')" class="text-xs text-emerald-600 font-semibold bg-emerald-50 px-2.5 py-1 rounded-lg">Edit</button>
-          </div>
-          <p class="text-xs text-slate-600">📍 ${c.ownerAddress}</p>
-          ${c.accessCode ? `<p class="text-xs text-amber-800 bg-amber-50 px-2 py-1 rounded">🔑 Access: <strong>${c.accessCode}</strong></p>` : ''}
-          ${c.petHealth ? `<p class="text-xs text-rose-800 bg-rose-50 px-2 py-1 rounded">🩺 Health/Notes: ${c.petHealth}</p>` : ''}
-          <div class="flex gap-2 pt-1 text-xs font-semibold">
-            <a href="tel:${c.ownerPhone}" class="flex-1 py-1.5 bg-slate-100 rounded-lg text-center text-slate-700">📞 Call</a>
-            <a href="sms:${c.ownerPhone}" class="flex-1 py-1.5 bg-slate-100 rounded-lg text-center text-slate-700">💬 Text</a>
-            <a href="http://maps.apple.com/?q=${encodeURIComponent(c.ownerAddress)}" target="_blank" class="flex-1 py-1.5 bg-slate-100 rounded-lg text-center text-slate-700">🗺️ Map</a>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    // --- RATES ---
-    function loadRatesInputs() {
-      ['solo30', 'solo60', 'group60', 'pop30', 'pop60'].forEach(k => {
-        document.getElementById(`rate_${k}`).value = state.rates[k];
-      });
-    }
-
-    function saveRates() {
-      ['solo30', 'solo60', 'group60', 'pop30', 'pop60'].forEach(k => {
-        state.rates[k] = parseFloat(document.getElementById(`rate_${k}`).value) || 0;
-      });
-      persist();
-      alert('Rates updated!');
-      renderBilling();
-    }
-
-    // --- WEEKLY BILLING & QUICKBOOKS ---
-    function getWeeklyClientTotals() {
-      const startStr = document.getElementById('billingWeekStart').value;
-      if (!startStr) return { summary: {}, weekEndStr: '' };
-      const startDate = new Date(startStr);
-      const endDate = new Date(startDate);
-      endDate.setDate(endDate.getDate() + 6);
-      const endStr = endDate.toISOString().split('T')[0];
-
-      const weekBookings = state.bookings.filter(b => b.date >= startStr && b.date <= endStr);
-      const summary = {};
-
-      weekBookings.forEach(b => {
-        const rate = state.rates[b.serviceType] || 0;
-        const serviceLabel = SERVICE_META[b.serviceType].label;
-        b.dogIds.forEach(dogId => {
-          const client = state.clients.find(c => c.id === dogId);
-          if (!client) return;
-          if (!summary[client.id]) {
-            summary[client.id] = { client, items: [], total: 0 };
-          }
-          summary[client.id].items.push({
-            date: b.date,
-            time: b.startTime,
-            serviceLabel,
-            rate
-          });
-          summary[client.id].total += rate;
-        });
-      });
-
-      return { summary, startStr, endStr };
-    }
-
-    function renderBilling() {
-      const { summary } = getWeeklyClientTotals();
-      const container = document.getElementById('billingBreakdown');
-      const entries = Object.values(summary);
-
-      const grandTotal = entries.reduce((acc, e) => acc + e.total, 0);
-      document.getElementById('weeklyTotalAmount').textContent = `£${grandTotal.toFixed(2)}`;
-
-      if (entries.length === 0) {
-        container.innerHTML = `<div class="text-center py-8 text-slate-400 text-sm bg-white rounded-xl border border-dashed border-slate-200">No billable walks found in this 7-day period.</div>`;
-        return;
-      }
-
-      container.innerHTML = entries.map(e => `
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-2">
-          <div class="flex justify-between items-center border-b pb-2">
-            <div>
-              <h4 class="font-bold text-slate-900">${e.client.ownerName} <span class="text-xs font-normal text-slate-500">(${e.client.dogName})</span></h4>
-              <p class="text-xs text-slate-400">${e.client.ownerEmail || 'No email set'}</p>
-            </div>
-            <span class="font-bold text-emerald-700 text-base">£${e.total.toFixed(2)}</span>
-          </div>
-          <ul class="text-xs space-y-1 text-slate-600">
-            ${e.items.map(i => `<li class="flex justify-between"><span>${i.date} (${i.time}) — ${i.serviceLabel}</span><span class="font-medium">£${i.rate.toFixed(2)}</span></li>`).join('')}
-          </ul>
-        </div>
-      `).join('');
-    }
-
-    function exportQuickBooksCSV() {
-      const { summary, startStr, endStr } = getWeeklyClientTotals();
-      const entries = Object.values(summary);
-      if (entries.length === 0) return alert('No invoices to export for this week.');
-
-      const rows = [['*InvoiceNo', '*Customer', 'CustomerEmail', '*InvoiceDate', '*DueDate', 'Item(Product/Service)', 'ItemDescription', '*ItemQuantity', '*ItemRate', '*ItemAmount']];
-      entries.forEach((e, idx) => {
-        const invNo = `INV-${startStr.replace(/-/g, '')}-${idx + 1}`;
-        e.items.forEach(item => {
-          rows.push([
-            invNo,
-            `"${e.client.ownerName}"`,
-            `"${e.client.ownerEmail || ''}"`,
-            endStr,
-            endStr,
-            `"${item.serviceLabel}"`,
-            `"${e.client.dogName} - ${item.serviceLabel} on ${item.date} at ${item.time}"`,
-            1,
-            item.rate.toFixed(2),
-            item.rate.toFixed(2)
-          ]);
-        });
-      });
-
-      const csvContent = 'data:text/csv;charset=utf-8,' + rows.map(r => r.join(',')).join('\n');
-      const link = document.createElement('a');
-      link.setAttribute('href', encodeURI(csvContent));
-      link.setAttribute('download', `QuickBooks_Invoices_${startStr}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    }
-
-    function copyWeeklySummary() {
-      const { summary, startStr, endStr } = getWeeklyClientTotals();
-      const entries = Object.values(summary);
-      if (entries.length === 0) return alert('Nothing to copy for this week.');
-      const text = entries.map(e =>
-        `${e.client.ownerName} (${e.client.dogName}): £${e.total.toFixed(2)} (${e.items.length} sessions)`
-      ).join('\n');
-      navigator.clipboard.writeText(`Weekly Invoice Summary (${startStr} to ${endStr}):\n` + text);
-      alert('Summary copied to clipboard!');
-    }
-
-    // --- BACKUP & RESTORE ---
-    function exportBackupJSON() {
-      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(state));
-      const a = document.createElement('a');
-      a.href = dataStr;
-      a.download = `PawTrack_Backup_${new Date().toISOString().split('T')[0]}.json`;
-      a.click();
-    }
-
-    function importBackupJSON(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = e => {
-        try {
-          const imported = JSON.parse(e.target.result);
-          if (imported.clients && imported.bookings && imported.rates) {
-            state = imported;
-            persist();
-            loadRatesInputs();
-            renderSchedule();
-            renderClients();
-            renderBilling();
-            alert('Backup restored successfully!');
-          }
-        } catch (err) {
-          alert('Invalid backup file.');
-        }
-      };
-      reader.readAsText(file);
-    }
-  </script>
-</body>
-</html>
+        <label class="text-xs font-semibold text-taupe-600">Select Dog(s) (2nd dog from same owner = 50% off)</label>
