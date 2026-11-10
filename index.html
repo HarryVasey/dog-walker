@@ -250,3 +250,701 @@
 
       <div>
         <label class="text-xs font-semibold text-taupe-600">Select Dog(s) (2nd dog from same owner = 50% off)</label>
+        <div id="bookingDogsChecklist" class="border border-beige-300 bg-white rounded-xl p-2.5 max-h-40 overflow-y-auto space-y-1.5 mt-1"></div>
+      </div>
+
+      <!-- Recurring Slot Settings -->
+      <div class="bg-white border border-beige-300 rounded-xl p-3 space-y-2.5">
+        <label class="flex items-center justify-between text-sm font-semibold text-taupe-900 cursor-pointer">
+          <span>🔁 Repeat Weekly (Recurring Slot)</span>
+          <input type="checkbox" id="bookingIsRecurring" onchange="toggleRecurringOptions()" class="w-4 h-4 accent-blush-500" />
+        </label>
+        <div id="recurringOptionsBox" class="hidden space-y-2 pt-1 border-t border-beige-200">
+          <p class="text-[11px] text-taupe-600">Select which days of the week to book this slot:</p>
+          <div class="grid grid-cols-7 gap-1 text-center text-xs font-semibold">
+            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="1" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>Mon</span></label>
+            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="2" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>Tue</span></label>
+            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="3" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>Wed</span></label>
+            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="4" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>Thu</span></label>
+            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="5" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>Fri</span></label>
+            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="6" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>Sat</span></label>
+            <label class="bg-beige-100 py-1.5 rounded-lg cursor-pointer"><input type="checkbox" value="0" class="rec-day-cb hidden" onchange="styleDayPill(this)" /><span>Sun</span></label>
+          </div>
+          <div class="flex items-center justify-between text-xs pt-1">
+            <span class="text-taupe-600 font-medium">Repeat for how many weeks?</span>
+            <select id="bookingRecurringWeeks" class="border border-beige-300 bg-beige-50 rounded-lg px-2 py-1 font-semibold">
+              <option value="4">4 Weeks</option>
+              <option value="8" selected>8 Weeks</option>
+              <option value="12">12 Weeks</option>
+              <option value="26">26 Weeks (6m)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <input id="bookingNotes" placeholder="Session notes (e.g. Towel dry, give meds)..." class="w-full border border-beige-300 bg-white rounded-xl p-2.5 text-sm" />
+
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeBookingModal()" class="flex-1 py-2.5 bg-beige-200 text-taupe-800 rounded-xl font-semibold text-sm">Cancel</button>
+        <button onclick="saveBooking()" class="flex-1 py-2.5 bg-blush-500 text-white rounded-xl font-semibold text-sm">Confirm Booking</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="fixed bottom-0 inset-x-0 bg-beige-100/95 backdrop-blur border-t border-beige-200 flex justify-around py-2 safe-bottom z-20 max-w-md mx-auto">
+    <button onclick="switchTab('schedule')" id="nav-schedule" class="flex flex-col items-center text-blush-600 font-bold text-xs">
+      <span class="text-lg">📅</span><span>Schedule</span>
+    </button>
+    <button onclick="switchTab('clients')" id="nav-clients" class="flex flex-col items-center text-taupe-600 font-medium text-xs">
+      <span class="text-lg">🐶</span><span>Clients</span>
+    </button>
+    <button onclick="switchTab('billing')" id="nav-billing" class="flex flex-col items-center text-taupe-600 font-medium text-xs">
+      <span class="text-lg">💷</span><span>Invoices</span>
+    </button>
+    <button onclick="switchTab('rates')" id="nav-rates" class="flex flex-col items-center text-taupe-600 font-medium text-xs">
+      <span class="text-lg">⚙️</span><span>Settings</span>
+    </button>
+  </nav>
+
+  <script>
+    // --- SERVICE METADATA ---
+    const SERVICE_META = {
+      solo30:  { label: 'Solo Walk (30m)',  duration: 30, badge: 'bg-blush-100 text-blush-700 border border-blush-200' },
+      solo60:  { label: 'Solo Walk (60m)',  duration: 60, badge: 'bg-blush-200 text-blush-700 border border-blush-400' },
+      group60: { label: 'Group Walk (60m)', duration: 60, badge: 'bg-beige-200 text-taupe-900 border border-beige-300' },
+      pop30:   { label: 'Pop-In (30m)',     duration: 30, badge: 'bg-amber-50 text-amber-800 border border-amber-200' },
+      pop60:   { label: 'Pop-In (60m)',     duration: 60, badge: 'bg-orange-50 text-orange-800 border border-orange-200' }
+    };
+
+    const defaultRates = { solo30: 14, solo60: 22, group60: 16, pop30: 12, pop60: 18, secondDogDiscount: 50 };
+
+    let state = {
+      clients: JSON.parse(localStorage.getItem('pt_clients') || '[]'),
+      bookings: JSON.parse(localStorage.getItem('pt_bookings') || '[]'),
+      rates: Object.assign({}, defaultRates, JSON.parse(localStorage.getItem('pt_rates') || '{}')),
+      brandName: localStorage.getItem('pt_brandName') || 'PawTrack',
+      logoDataUrl: localStorage.getItem('pt_logo') || ''
+    };
+
+    function persist() {
+      localStorage.setItem('pt_clients', JSON.stringify(state.clients));
+      localStorage.setItem('pt_bookings', JSON.stringify(state.bookings));
+      localStorage.setItem('pt_rates', JSON.stringify(state.rates));
+      localStorage.setItem('pt_brandName', state.brandName);
+      if (state.logoDataUrl) localStorage.setItem('pt_logo', state.logoDataUrl);
+    }
+
+    // Helper: Identify household key so dogs belonging to the same owner are grouped
+    function getOwnerKey(client) {
+      const nameKey = (client.ownerName || '').trim().toLowerCase();
+      const phoneKey = (client.ownerPhone || '').replace(/\D/g, '');
+      return nameKey || phoneKey || client.id;
+    }
+
+    // Helper: Calculate per-dog price inside a single booking (1st dog = 100%, 2nd+ dog of same owner = discounted)
+    function calculateBookingDogPrices(booking) {
+      const baseRate = state.rates[booking.serviceType] || 0;
+      const discountPct = (state.rates.secondDogDiscount ?? 50) / 100;
+      const ownerSeenCount = {};
+      const results = [];
+
+      booking.dogIds.forEach(dogId => {
+        const client = state.clients.find(c => c.id === dogId);
+        if (!client) return;
+        const ownerKey = getOwnerKey(client);
+        ownerSeenCount[ownerKey] = (ownerSeenCount[ownerKey] || 0) + 1;
+        const isSecondDog = ownerSeenCount[ownerKey] > 1;
+        const finalPrice = isSecondDog ? baseRate * (1 - discountPct) : baseRate;
+        results.push({
+          client,
+          isSecondDog,
+          baseRate,
+          finalPrice,
+          discountPct: state.rates.secondDogDiscount ?? 50
+        });
+      });
+      return results;
+    }
+
+    // --- INIT ---
+    window.addEventListener('DOMContentLoaded', () => {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('scheduleDate').value = today;
+      document.getElementById('headerDate').textContent = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+
+      const d = new Date();
+      const day = d.getDay(), diff = d.getDate() - day + (day === 0 ? -6 : 1);
+      const monday = new Date(d.setDate(diff)).toISOString().split('T')[0];
+      document.getElementById('billingWeekStart').value = monday;
+
+      populate15MinSlots();
+      applyBranding();
+      loadRatesInputs();
+      renderSchedule();
+      renderClients();
+      renderBilling();
+    });
+
+    // --- BRANDING & LOGO ---
+    function applyBranding() {
+      document.getElementById('headerBrandName').textContent = state.brandName || 'PawTrack';
+      document.getElementById('brandNameInput').value = state.brandName || 'PawTrack';
+      document.title = state.brandName || 'PawTrack';
+
+      if (state.logoDataUrl) {
+        document.getElementById('headerLogo').src = state.logoDataUrl;
+        document.getElementById('headerLogo').classList.remove('hidden');
+        document.getElementById('headerFallbackIcon').classList.add('hidden');
+        document.getElementById('settingsLogoPreview').src = state.logoDataUrl;
+        document.getElementById('settingsLogoPreview').classList.remove('hidden');
+        document.getElementById('appleTouchIcon').href = state.logoDataUrl;
+        document.getElementById('favIcon').href = state.logoDataUrl;
+      }
+    }
+
+    function saveBrandName() {
+      state.brandName = document.getElementById('brandNameInput').value.trim() || 'PawTrack';
+      persist();
+      applyBranding();
+    }
+
+    function handleLogoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = 180;
+          canvas.height = 180;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#fdfaf7';
+          ctx.fillRect(0, 0, 180, 180);
+          // Center crop square
+          const minSide = Math.min(img.width, img.height);
+          const sx = (img.width - minSide) / 2;
+          const sy = (img.height - minSide) / 2;
+          ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, 180, 180);
+          state.logoDataUrl = canvas.toDataURL('image/png');
+          persist();
+          applyBranding();
+          alert('Logo updated! Now tap Share -> Add to Home Screen in Safari to use it as your app icon.');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function populate15MinSlots() {
+      const sel = document.getElementById('bookingStartTime');
+      sel.innerHTML = '';
+      for (let h = 6; h <= 20; h++) {
+        for (let m of [0, 15, 30, 45]) {
+          const hh = String(h).padStart(2, '0');
+          const mm = String(m).padStart(2, '0');
+          const opt = document.createElement('option');
+          opt.value = `${hh}:${mm}`;
+          opt.textContent = `${hh}:${mm}`;
+          if (h === 9 && m === 0) opt.selected = true;
+          sel.appendChild(opt);
+        }
+      }
+    }
+
+    function addMinutes(timeStr, mins) {
+      const [h, m] = timeStr.split(':').map(Number);
+      const total = h * 60 + m + mins;
+      const nh = String(Math.floor(total / 60) % 24).padStart(2, '0');
+      const nm = String(total % 60).padStart(2, '0');
+      return `${nh}:${nm}`;
+    }
+
+    // --- NAVIGATION ---
+    function switchTab(tab) {
+      ['schedule', 'clients', 'billing', 'rates'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
+        const nav = document.getElementById(`nav-${t}`);
+        nav.className = t === tab
+          ? 'flex flex-col items-center text-blush-600 font-bold text-xs'
+          : 'flex flex-col items-center text-taupe-600 font-medium text-xs';
+      });
+      if (tab === 'billing') renderBilling();
+    }
+
+    // --- SCHEDULE & RECURRING SLOTS ---
+    function changeDay(offset) {
+      const input = document.getElementById('scheduleDate');
+      const d = new Date(input.value);
+      d.setDate(d.getDate() + offset);
+      input.value = d.toISOString().split('T')[0];
+      renderSchedule();
+    }
+
+    function toggleRecurringOptions() {
+      const isRec = document.getElementById('bookingIsRecurring').checked;
+      document.getElementById('recurringOptionsBox').classList.toggle('hidden', !isRec);
+      if (isRec) {
+        const currentDay = new Date(document.getElementById('scheduleDate').value).getDay();
+        document.querySelectorAll('.rec-day-cb').forEach(cb => {
+          cb.checked = Number(cb.value) === currentDay;
+          styleDayPill(cb);
+        });
+      }
+    }
+
+    function styleDayPill(cb) {
+      const label = cb.parentElement;
+      if (cb.checked) {
+        label.className = 'bg-blush-500 text-white py-1.5 rounded-lg cursor-pointer';
+      } else {
+        label.className = 'bg-beige-100 text-taupe-800 py-1.5 rounded-lg cursor-pointer';
+      }
+    }
+
+    function openBookingModal() {
+      if (state.clients.length === 0) {
+        alert('Please add at least one dog/client in the Clients tab first!');
+        switchTab('clients');
+        return;
+      }
+      // Sort by owner so same-household dogs sit together
+      const sortedClients = [...state.clients].sort((a, b) => a.ownerName.localeCompare(b.ownerName));
+      const list = document.getElementById('bookingDogsChecklist');
+      list.innerHTML = sortedClients.map(c => `
+        <label class="flex items-center justify-between text-sm py-1 px-1.5 rounded hover:bg-beige-50">
+          <div class="flex items-center gap-2">
+            <input type="checkbox" value="${c.id}" class="booking-dog-cb w-4 h-4 accent-blush-500" />
+            <span class="font-semibold text-taupe-900">${c.dogName}</span>
+          </div>
+          <span class="text-xs text-taupe-600">Owner: ${c.ownerName}</span>
+        </label>
+      `).join('');
+      document.getElementById('bookingNotes').value = '';
+      document.getElementById('bookingIsRecurring').checked = false;
+      document.getElementById('recurringOptionsBox').classList.add('hidden');
+      document.getElementById('bookingModal').classList.remove('hidden');
+    }
+
+    function closeBookingModal() {
+      document.getElementById('bookingModal').classList.add('hidden');
+    }
+
+    function saveBooking() {
+      const baseDateStr = document.getElementById('scheduleDate').value;
+      const startTime = document.getElementById('bookingStartTime').value;
+      const serviceType = document.getElementById('bookingServiceType').value;
+      const notes = document.getElementById('bookingNotes').value.trim();
+      const dogIds = Array.from(document.querySelectorAll('.booking-dog-cb:checked')).map(cb => cb.value);
+      const isRecurring = document.getElementById('bookingIsRecurring').checked;
+
+      if (dogIds.length === 0) return alert('Select at least one dog.');
+
+      const endTime = addMinutes(startTime, SERVICE_META[serviceType].duration);
+      const seriesId = isRecurring ? 'rec_' + Date.now() : null;
+
+      if (!isRecurring) {
+        state.bookings.push({
+          id: 'bk_' + Date.now(),
+          seriesId: null,
+          date: baseDateStr,
+          startTime, endTime, serviceType, dogIds, notes
+        });
+      } else {
+        const selectedDays = Array.from(document.querySelectorAll('.rec-day-cb:checked')).map(cb => Number(cb.value));
+        const weeks = Number(document.getElementById('bookingRecurringWeeks').value) || 4;
+        if (selectedDays.length === 0) return alert('Please select at least one day of the week for recurring slots.');
+
+        const startDate = new Date(baseDateStr);
+        const totalDays = weeks * 7;
+        for (let i = 0; i < totalDays; i++) {
+          const d = new Date(startDate);
+          d.setDate(startDate.getDate() + i);
+          if (selectedDays.includes(d.getDay())) {
+            const dStr = d.toISOString().split('T')[0];
+            state.bookings.push({
+              id: 'bk_' + Date.now() + '_' + i,
+              seriesId,
+              date: dStr,
+              startTime, endTime, serviceType, dogIds, notes
+            });
+          }
+        }
+      }
+
+      persist();
+      closeBookingModal();
+      renderSchedule();
+    }
+
+    function copyPreviousWeekSchedule() {
+      const currDateStr = document.getElementById('scheduleDate').value;
+      const curr = new Date(currDateStr);
+      const day = curr.getDay(), diff = curr.getDate() - day + (day === 0 ? -6 : 1);
+      const thisMonday = new Date(curr.setDate(diff));
+      const lastMonday = new Date(thisMonday);
+      lastMonday.setDate(thisMonday.getDate() - 7);
+      const lastSunday = new Date(lastMonday);
+      lastSunday.setDate(lastMonday.getDate() + 6);
+
+      const startStr = lastMonday.toISOString().split('T')[0];
+      const endStr = lastSunday.toISOString().split('T')[0];
+
+      const prevBookings = state.bookings.filter(b => b.date >= startStr && b.date <= endStr);
+      if (prevBookings.length === 0) {
+        return alert('No bookings found in the previous week to copy.');
+      }
+      if (!confirm(`Copy ${prevBookings.length} bookings from last week into this week?`)) return;
+
+      prevBookings.forEach((b, i) => {
+        const d = new Date(b.date);
+        d.setDate(d.getDate() + 7);
+        const newDateStr = d.toISOString().split('T')[0];
+        state.bookings.push({
+          ...b,
+          id: 'bk_copy_' + Date.now() + '_' + i,
+          date: newDateStr
+        });
+      });
+      persist();
+      renderSchedule();
+      alert('Last week copied to this week!');
+    }
+
+    function deleteBooking(id, seriesId) {
+      if (seriesId && seriesId !== 'null') {
+        const choice = prompt('Type "1" to delete ONLY this walk, or "2" to delete ALL future walks in this recurring series:', '1');
+        if (choice === '2') {
+          const currentDate = document.getElementById('scheduleDate').value;
+          state.bookings = state.bookings.filter(b => !(b.seriesId === seriesId && b.date >= currentDate));
+        } else if (choice === '1') {
+          state.bookings = state.bookings.filter(b => b.id !== id);
+        } else {
+          return;
+        }
+      } else {
+        if (!confirm('Remove this booking?')) return;
+        state.bookings = state.bookings.filter(b => b.id !== id);
+      }
+      persist();
+      renderSchedule();
+    }
+
+    function renderSchedule() {
+      const date = document.getElementById('scheduleDate').value;
+      const container = document.getElementById('dayBookingsList');
+      const dayItems = state.bookings
+        .filter(b => b.date === date)
+        .sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+      if (dayItems.length === 0) {
+        container.innerHTML = `<div class="text-center py-10 text-taupe-600 text-sm bg-white rounded-2xl border border-dashed border-beige-300">No walks or pop-ins booked for this day.</div>`;
+        return;
+      }
+
+      container.innerHTML = dayItems.map(b => {
+        const meta = SERVICE_META[b.serviceType];
+        const pricedDogs = calculateBookingDogPrices(b);
+        return `
+          <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-beige-200 space-y-2">
+            <div class="flex justify-between items-start">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span class="font-bold text-taupe-900 text-base">${b.startTime} – ${b.endTime}</span>
+                <span class="text-xs px-2.5 py-0.5 rounded-full font-semibold ${meta.badge}">${meta.label}</span>
+                ${b.seriesId ? `<span class="text-[11px] bg-beige-100 text-taupe-800 px-2 py-0.5 rounded-full font-semibold">🔁 Recurring</span>` : ''}
+              </div>
+              <button onclick="deleteBooking('${b.id}', '${b.seriesId || ''}')" class="text-xs text-blush-600 font-bold px-1.5">✕</button>
+            </div>
+            <div class="space-y-1.5">
+              ${pricedDogs.map(({ client: d, isSecondDog, finalPrice, discountPct }) => `
+                <div class="text-sm flex flex-wrap items-center justify-between bg-beige-50 border border-beige-200 px-2.5 py-1.5 rounded-xl">
+                  <div>
+                    <span class="font-bold text-taupe-900">🐕 ${d.dogName}</span>
+                    <span class="text-xs text-taupe-600 ml-1">(${d.ownerName})</span>
+                    ${isSecondDog ? `<span class="text-[11px] bg-blush-100 text-blush-700 font-semibold px-1.5 py-0.5 rounded ml-1">-${discountPct}% 2nd Dog (£${finalPrice.toFixed(2)})</span>` : `<span class="text-xs text-taupe-600 ml-1">£${finalPrice.toFixed(2)}</span>`}
+                    ${d.accessCode ? `<span class="text-[11px] bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 rounded ml-1">🔑 ${d.accessCode}</span>` : ''}
+                  </div>
+                  <div class="flex gap-2.5 text-xs font-semibold">
+                    <a href="tel:${d.ownerPhone}" class="text-blush-600">Call</a>
+                    <a href="http://maps.apple.com/?q=${encodeURIComponent(d.ownerAddress)}" target="_blank" class="text-taupe-800 underline">Map</a>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            ${b.notes ? `<p class="text-xs text-taupe-600 italic">📝 ${b.notes}</p>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    // --- CLIENTS ---
+    function openClientModal(id = null, prefillOwner = null) {
+      const c = id ? state.clients.find(x => x.id === id) : null;
+      document.getElementById('clientId').value = c ? c.id : '';
+      document.getElementById('dogName').value = c ? c.dogName : '';
+      document.getElementById('ownerName').value = c ? c.ownerName : (prefillOwner ? prefillOwner.ownerName : '');
+      document.getElementById('ownerPhone').value = c ? c.ownerPhone : (prefillOwner ? prefillOwner.ownerPhone : '');
+      document.getElementById('ownerEmail').value = c ? (c.ownerEmail || '') : (prefillOwner ? (prefillOwner.ownerEmail || '') : '');
+      document.getElementById('ownerAddress').value = c ? c.ownerAddress : (prefillOwner ? prefillOwner.ownerAddress : '');
+      document.getElementById('accessCode').value = c ? (c.accessCode || '') : (prefillOwner ? (prefillOwner.accessCode || '') : '');
+      document.getElementById('petHealth').value = c ? (c.petHealth || '') : '';
+      document.getElementById('clientModal').classList.remove('hidden');
+    }
+
+    function addSecondDogForOwner(clientId) {
+      const existing = state.clients.find(x => x.id === clientId);
+      if (existing) openClientModal(null, existing);
+    }
+
+    function closeClientModal() {
+      document.getElementById('clientModal').classList.add('hidden');
+    }
+
+    function saveClient() {
+      const id = document.getElementById('clientId').value;
+      const dogName = document.getElementById('dogName').value.trim();
+      const ownerName = document.getElementById('ownerName').value.trim();
+      const ownerPhone = document.getElementById('ownerPhone').value.trim();
+      const ownerEmail = document.getElementById('ownerEmail').value.trim();
+      const ownerAddress = document.getElementById('ownerAddress').value.trim();
+      const accessCode = document.getElementById('accessCode').value.trim();
+      const petHealth = document.getElementById('petHealth').value.trim();
+
+      if (!dogName || !ownerName) return alert('Dog Name and Owner Name are required.');
+
+      if (id) {
+        const idx = state.clients.findIndex(c => c.id === id);
+        if (idx > -1) state.clients[idx] = { id, dogName, ownerName, ownerPhone, ownerEmail, ownerAddress, accessCode, petHealth };
+      } else {
+        state.clients.push({ id: 'cl_' + Date.now(), dogName, ownerName, ownerPhone, ownerEmail, ownerAddress, accessCode, petHealth });
+      }
+      persist();
+      closeClientModal();
+      renderClients();
+      renderSchedule();
+    }
+
+    function renderClients() {
+      const container = document.getElementById('clientsList');
+      if (state.clients.length === 0) {
+        container.innerHTML = `<div class="text-center py-10 text-taupe-600 text-sm bg-white rounded-2xl border border-dashed border-beige-300">No dogs added yet. Tap above to add your first client!</div>`;
+        return;
+      }
+
+      // Count how many dogs each owner has
+      const ownerCounts = {};
+      state.clients.forEach(c => {
+        const k = getOwnerKey(c);
+        ownerCounts[k] = (ownerCounts[k] || 0) + 1;
+      });
+
+      container.innerHTML = state.clients.map(c => {
+        const multiDogCount = ownerCounts[getOwnerKey(c)] || 1;
+        return `
+          <div class="bg-white p-4 rounded-2xl shadow-sm border border-beige-200 space-y-2">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="font-bold text-base text-taupe-900">🐶 ${c.dogName}</h3>
+                  ${multiDogCount > 1 ? `<span class="text-[11px] bg-blush-100 text-blush-700 font-semibold px-2 py-0.5 rounded-full">Multi-Dog Household (${multiDogCount})</span>` : ''}
+                </div>
+                <p class="text-xs text-taupe-600">Owner: <span class="font-semibold text-taupe-900">${c.ownerName}</span></p>
+              </div>
+              <div class="flex gap-1.5">
+                <button onclick="addSecondDogForOwner('${c.id}')" class="text-xs text-blush-700 font-semibold bg-blush-50 border border-blush-200 px-2 py-1 rounded-lg">＋ 2nd Dog</button>
+                <button onclick="openClientModal('${c.id}')" class="text-xs text-taupe-800 font-semibold bg-beige-100 px-2.5 py-1 rounded-lg">Edit</button>
+              </div>
+            </div>
+            <p class="text-xs text-taupe-600">📍 ${c.ownerAddress}</p>
+            ${c.accessCode ? `<p class="text-xs text-amber-900 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg">🔑 Access: <strong>${c.accessCode}</strong></p>` : ''}
+            ${c.petHealth ? `<p class="text-xs text-blush-700 bg-blush-50 border border-blush-200 px-2.5 py-1 rounded-lg">🩺 Health/Notes: ${c.petHealth}</p>` : ''}
+            <div class="flex gap-2 pt-1 text-xs font-semibold">
+              <a href="tel:${c.ownerPhone}" class="flex-1 py-1.5 bg-beige-100 rounded-xl text-center text-taupe-800">📞 Call</a>
+              <a href="sms:${c.ownerPhone}" class="flex-1 py-1.5 bg-beige-100 rounded-xl text-center text-taupe-800">💬 Text</a>
+              <a href="http://maps.apple.com/?q=${encodeURIComponent(c.ownerAddress)}" target="_blank" class="flex-1 py-1.5 bg-beige-100 rounded-xl text-center text-taupe-800">🗺️ Map</a>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // --- RATES ---
+    function loadRatesInputs() {
+      ['solo30', 'solo60', 'group60', 'pop30', 'pop60', 'secondDogDiscount'].forEach(k => {
+        document.getElementById(`rate_${k}`).value = state.rates[k];
+      });
+    }
+
+    function saveRates() {
+      ['solo30', 'solo60', 'group60', 'pop30', 'pop60', 'secondDogDiscount'].forEach(k => {
+        state.rates[k] = parseFloat(document.getElementById(`rate_${k}`).value) || 0;
+      });
+      persist();
+      alert('Rates & 2nd-dog discount saved!');
+      renderSchedule();
+      renderBilling();
+    }
+
+    // --- WEEKLY BILLING & QUICKBOOKS (Grouped by Owner with 50% 2nd Dog Discount) ---
+    function getWeeklyOwnerTotals() {
+      const startStr = document.getElementById('billingWeekStart').value;
+      if (!startStr) return { summary: {}, startStr: '', endStr: '' };
+      const startDate = new Date(startStr);
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + 6);
+      const endStr = endDate.toISOString().split('T')[0];
+
+      const weekBookings = state.bookings
+        .filter(b => b.date >= startStr && b.date <= endStr)
+        .sort((a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime));
+
+      const summary = {};
+
+      weekBookings.forEach(b => {
+        const serviceLabel = SERVICE_META[b.serviceType].label;
+        const pricedDogs = calculateBookingDogPrices(b);
+
+        pricedDogs.forEach(({ client, isSecondDog, finalPrice, discountPct }) => {
+          const ownerKey = getOwnerKey(client);
+          if (!summary[ownerKey]) {
+            summary[ownerKey] = {
+              ownerName: client.ownerName,
+              ownerEmail: client.ownerEmail || '',
+              dogs: new Set(),
+              items: [],
+              total: 0
+            };
+          }
+          summary[ownerKey].dogs.add(client.dogName);
+          summary[ownerKey].items.push({
+            date: b.date,
+            time: b.startTime,
+            dogName: client.dogName,
+            serviceLabel: isSecondDog ? `${serviceLabel} (${discountPct}% 2nd Dog Discount)` : serviceLabel,
+            rate: finalPrice,
+            isSecondDog
+          });
+          summary[ownerKey].total += finalPrice;
+        });
+      });
+
+      return { summary, startStr, endStr };
+    }
+
+    function renderBilling() {
+      const { summary } = getWeeklyOwnerTotals();
+      const container = document.getElementById('billingBreakdown');
+      const entries = Object.values(summary);
+
+      const grandTotal = entries.reduce((acc, e) => acc + e.total, 0);
+      document.getElementById('weeklyTotalAmount').textContent = `£${grandTotal.toFixed(2)}`;
+
+      if (entries.length === 0) {
+        container.innerHTML = `<div class="text-center py-8 text-taupe-600 text-sm bg-white rounded-2xl border border-dashed border-beige-300">No billable walks found in this 7-day period.</div>`;
+        return;
+      }
+
+      container.innerHTML = entries.map(e => {
+        const dogList = Array.from(e.dogs).join(', ');
+        return `
+          <div class="bg-white p-4 rounded-2xl shadow-sm border border-beige-200 space-y-2">
+            <div class="flex justify-between items-center border-b border-beige-200 pb-2">
+              <div>
+                <h4 class="font-bold text-taupe-900">${e.ownerName} <span class="text-xs font-normal text-taupe-600">(${dogList})</span></h4>
+                <p class="text-xs text-taupe-600">${e.ownerEmail || 'No email set'}</p>
+              </div>
+              <span class="font-bold text-blush-700 text-base">£${e.total.toFixed(2)}</span>
+            </div>
+            <ul class="text-xs space-y-1 text-taupe-800">
+              ${e.items.map(i => `
+                <li class="flex justify-between items-center">
+                  <span>${i.date} (${i.time}) — <strong>${i.dogName}</strong>: ${i.serviceLabel}</span>
+                  <span class="font-semibold ${i.isSecondDog ? 'text-blush-700' : ''}">£${i.rate.toFixed(2)}</span>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function exportQuickBooksCSV() {
+      const { summary, startStr, endStr } = getWeeklyOwnerTotals();
+      const entries = Object.values(summary);
+      if (entries.length === 0) return alert('No invoices to export for this week.');
+
+      const rows = [['*InvoiceNo', '*Customer', 'CustomerEmail', '*InvoiceDate', '*DueDate', 'Item(Product/Service)', 'ItemDescription', '*ItemQuantity', '*ItemRate', '*ItemAmount']];
+      entries.forEach((e, idx) => {
+        const invNo = `INV-${startStr.replace(/-/g, '')}-${idx + 1}`;
+        e.items.forEach(item => {
+          rows.push([
+            invNo,
+            `"${e.ownerName}"`,
+            `"${e.ownerEmail}"`,
+            endStr,
+            endStr,
+            `"${item.serviceLabel}"`,
+            `"${item.dogName} - ${item.serviceLabel} on ${item.date} at ${item.time}"`,
+            1,
+            item.rate.toFixed(2),
+            item.rate.toFixed(2)
+          ]);
+        });
+      });
+
+      const csvContent = 'data:text/csv;charset=utf-8,' + rows.map(r => r.join(',')).join('\n');
+      const link = document.createElement('a');
+      link.setAttribute('href', encodeURI(csvContent));
+      link.setAttribute('download', `QuickBooks_Invoices_${startStr}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+
+    function copyWeeklySummary() {
+      const { summary, startStr, endStr } = getWeeklyOwnerTotals();
+      const entries = Object.values(summary);
+      if (entries.length === 0) return alert('Nothing to copy for this week.');
+      const text = entries.map(e =>
+        `${e.ownerName} (${Array.from(e.dogs).join(', ')}): £${e.total.toFixed(2)} (${e.items.length} dog-sessions)`
+      ).join('\n');
+      navigator.clipboard.writeText(`Weekly Invoice Summary (${startStr} to ${endStr}):\n` + text);
+      alert('Summary copied to clipboard!');
+    }
+
+    // --- BACKUP & RESTORE ---
+    function exportBackupJSON() {
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(state));
+      const a = document.createElement('a');
+      a.href = dataStr;
+      a.download = `PawTrack_Backup_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+    }
+
+    function importBackupJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (imported.clients && imported.bookings && imported.rates) {
+            state = Object.assign(state, imported);
+            persist();
+            applyBranding();
+            loadRatesInputs();
+            renderSchedule();
+            renderClients();
+            renderBilling();
+            alert('Backup restored successfully!');
+          }
+        } catch (err) {
+          alert('Invalid backup file.');
+        }
+      };
+      reader.readAsText(file);
+    }
+  </script>
+</body>
+</html>
