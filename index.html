@@ -319,6 +319,25 @@
   </nav>
 
   <script>
+
+    function switchTab(tab) {
+  const tabs = ['schedule', 'clients', 'billing', 'rates'];
+  if (!tabs.includes(tab)) return;
+
+  tabs.forEach(name => {
+    document.getElementById(`tab-${name}`)
+      .classList.toggle('hidden', name !== tab);
+
+    const navButton = document.getElementById(`nav-${name}`);
+    navButton.className = name === tab
+      ? 'flex flex-col items-center text-blush-600 font-bold text-xs'
+      : 'flex flex-col items-center text-taupe-600 font-medium text-xs';
+  });
+
+  if (tab === 'schedule') renderSchedule();
+  if (tab === 'clients') renderClients();
+  if (tab === 'billing') renderBilling();
+}
     // ---------- SAFE STORAGE ----------
     function lsGet(key, fallback) {
       try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; }
